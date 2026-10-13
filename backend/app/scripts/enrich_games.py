@@ -131,6 +131,39 @@ class TitleResolutionReport:
     failures: list[TitleResolutionFailure] = field(default_factory=list)
 
 
+# Hand-resolved overrides for Game List titles the automatic matcher can't
+# safely disambiguate on its own - checked before any fuzzy/search
+# resolution so re-running sync_curated_list.py stays idempotent instead of
+# re-flagging these as ambiguous and dropping them from the curated set on
+# the next run (resolve_titles only keeps a curated title if it's in the
+# freshly-resolved set every time - see sync_curated_list.py's diff).
+#
+# - "Resident Evil (1996)" / "Resident Evil 2 (1998)" / "Shadow of the
+#   Colossus (2005)": the original and a later remaster already share the
+#   exact display name as two separate rows in `games` (pulled in by the
+#   broad IGDB catalog sync) - distinguished by platform: id 424/880/2207
+#   are the single-original-platform releases (PlayStation / PlayStation+
+#   Dreamcast+GameCube+PC / PlayStation 2), the other same-named id in each
+#   case is the later multi-platform remaster.
+# - "Perfect Dark (2000)" / "Ketsui: Kizuna Jigoku-tachi (2003)": IGDB has
+#   2 same-named entries both dated in the hinted year (regional release
+#   dates a day apart) - the id below is the one matching the user-given
+#   exact date (5/21/2000 and 1/27/2003 respectively; IGDB's stored dates
+#   are 5/22/2000 and 1/28/2003, a day off, most likely a timezone/region
+#   rounding difference rather than a different release).
+# - "OFF (2008)": too short/common a title for search_games or
+#   find_by_contains to surface among their result caps - id confirmed via
+#   the user-provided IGDB listing (igdb.com/games/off, slug "off").
+MANUAL_TITLE_OVERRIDES: dict[str, int] = {
+    "Resident Evil (1996)": 424,
+    "Resident Evil 2 (1998)": 880,
+    "Shadow of the Colossus (2005)": 2207,
+    "Perfect Dark (2000)": 1463,
+    "Ketsui: Kizuna Jigoku-tachi (2003)": 7035,
+    "OFF (2008)": 24930,
+}
+
+
 def _igdb_release_year(raw: dict) -> int | None:
     ts = raw.get("first_release_date")
     if ts is None:
@@ -185,7 +218,29 @@ async def resolve_titles(session, titles: list[str]) -> tuple[list[Game], TitleR
 
     igdb_client = IGDBClient()
 
+    known_by_id = {g.id: g for g in known_games}
+
     for raw_title in titles:
+        if raw_title in MANUAL_TITLE_OVERRIDES:
+            override_id = MANUAL_TITLE_OVERRIDES[raw_title]
+            db_game = known_by_id.get(override_id)
+            if db_game is None:
+                raw = await igdb_client.fetch_by_ids([override_id])
+                await upsert_games(session, raw)
+                db_game = await session.get(Game, override_id)
+                known_games.append(db_game)
+                known_by_id[db_game.id] = db_game
+            if db_game.hltb_main is None:
+                hltb_match = await hltb_match_game(db_game.name)
+                if hltb_match is not None:
+                    db_game.hltb_main = hltb_match.main
+                    db_game.hltb_main_extra = hltb_match.main_extra
+                    db_game.hltb_completionist = hltb_match.completionist
+                    await session.commit()
+            resolved.append(db_game)
+            report.already_in_db.append(raw_title)
+            continue
+
         title, year_hint = split_year_hint(raw_title)
         game, status, confidence = classify_match(title, known_games)
 
