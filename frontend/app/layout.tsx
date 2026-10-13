@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeProvider } from "@/components/theme-provider";
 import ThemeToggle from "@/components/ThemeToggle";
+import BookshelfMargins from "@/components/BookshelfMargins";
+import { BookshelfProvider } from "@/lib/bookshelf-context";
 
 // Serif display face for the "reading room" theme - used only for headings
 // (--font-heading, see globals.css), body/UI text stays on GeistSans for
@@ -37,32 +39,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <html lang="en" className={cn("font-sans", GeistSans.variable, fraunces.variable)} suppressHydrationWarning>
         <body className="bg-background text-foreground">
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/95 px-4 py-3 backdrop-blur-sm">
-              <Link href="/" className="flex items-center gap-2 font-heading text-lg font-semibold">
-                {/* eslint-disable-next-line @next/next/no-img-element -- tiny pixel-art logo; next/image's resampling would blur it, image-rendering:pixelated keeps it crisp */}
-                <img
-                  src="/logo.png"
-                  alt="GameKeep"
-                  className="size-6"
-                  style={{ imageRendering: "pixelated" }}
-                />
-                GameKeep
-              </Link>
-              <div className="flex items-center gap-2">
-                <SignedIn>
-                  <Button variant="ghost" size="sm" render={<Link href="/wishlist">Wishlist</Link>} />
-                  <Button variant="ghost" size="sm" render={<Link href="/profile">Profile</Link>} />
-                  <UserButton afterSignOutUrl="/" />
-                </SignedIn>
-                <SignedOut>
-                  <SignInButton mode="modal">
-                    <Button size="sm">Sign in</Button>
-                  </SignInButton>
-                </SignedOut>
-                <ThemeToggle />
-              </div>
-            </header>
-            {children}
+            <BookshelfProvider>
+              <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/95 px-4 py-3 backdrop-blur-sm">
+                <Link href="/" className="flex items-center gap-2 font-heading text-lg font-semibold">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- tiny pixel-art logo; next/image's resampling would blur it, image-rendering:pixelated keeps it crisp */}
+                  <img
+                    src="/logo.png"
+                    alt="GameKeep"
+                    className="size-6"
+                    style={{ imageRendering: "pixelated" }}
+                  />
+                  GameKeep
+                </Link>
+                <div className="flex items-center gap-2">
+                  <SignedIn>
+                    <Button variant="ghost" size="sm" render={<Link href="/wishlist">Wishlist</Link>} />
+                    <Button variant="ghost" size="sm" render={<Link href="/profile">Profile</Link>} />
+                    <UserButton afterSignOutUrl="/" />
+                  </SignedIn>
+                  <SignedOut>
+                    <SignInButton mode="modal">
+                      <Button size="sm">Sign in</Button>
+                    </SignInButton>
+                  </SignedOut>
+                  <ThemeToggle />
+                </div>
+              </header>
+              <BookshelfMargins />
+              {children}
+            </BookshelfProvider>
           </ThemeProvider>
         </body>
       </html>

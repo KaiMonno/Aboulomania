@@ -6,15 +6,27 @@ import { cn } from "cn";
 // rather than sharing an app-level Tooltip.Provider - fine for the one
 // place this is used so far (Bookshelf.tsx); add a Provider higher up if
 // shared delay/timing config is ever needed across many tooltips.
-function Tooltip({ content, children }: { content: string; children: React.ReactNode }) {
+function Tooltip({
+  content,
+  children,
+  side = "top",
+}: {
+  content: string;
+  children: React.ReactNode;
+  side?: "top" | "bottom" | "left" | "right";
+}) {
   return (
     <TooltipPrimitive.Root>
       <TooltipPrimitive.Trigger render={<span>{children}</span>} />
       <TooltipPrimitive.Portal>
-        <TooltipPrimitive.Positioner sideOffset={6}>
+        {/* z-[100]: well above the bookshelf frame (z-10) and packed rows
+            of other spines - found live that the default "top" placement
+            could render a tooltip overlapping a neighboring spine one row
+            up in a tightly-packed shelf, see Bookshelf.tsx's side prop. */}
+        <TooltipPrimitive.Positioner side={side} sideOffset={8} collisionPadding={8}>
           <TooltipPrimitive.Popup
             className={cn(
-              "z-50 rounded-md border bg-popover px-2 py-1 text-xs text-popover-foreground shadow-md"
+              "z-[100] rounded-md border bg-popover px-2 py-1 text-xs whitespace-nowrap text-popover-foreground shadow-md"
             )}
           >
             {content}

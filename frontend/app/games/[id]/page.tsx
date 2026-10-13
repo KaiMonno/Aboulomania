@@ -175,8 +175,8 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
 
         <div className="flex flex-wrap items-center gap-3 pt-2">
           <SignedIn>
-            <SaveButton gameId={game.id} />
-            <PlayedButton gameId={game.id} />
+            <SaveButton game={game} />
+            <PlayedButton game={game} />
           </SignedIn>
           <SignedOut>
             <span className="text-sm text-muted-foreground">Sign in to save or exclude games</span>

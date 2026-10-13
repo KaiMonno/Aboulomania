@@ -7,9 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Bookmark } from "lucide-react";
+import { useBookshelf } from "@/lib/bookshelf-context";
 
 function WishlistContent() {
   const { getToken } = useAuth();
+  const { noteRemoved } = useBookshelf();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +33,10 @@ function WishlistContent() {
     const token = await getToken();
     await removeFromWishlist(token, gameId);
     setItems((prev) => prev.filter((item) => item.game.id !== gameId));
+    // Keeps the homepage/detail-page margin shelf (lib/bookshelf-context.tsx)
+    // in sync - it's a separate global list, not derived from this page's
+    // own fetch, so it wouldn't otherwise learn about a removal made here.
+    noteRemoved("right", gameId);
   }
 
   if (loading) return <p className="text-sm text-muted-foreground">Loading...</p>;

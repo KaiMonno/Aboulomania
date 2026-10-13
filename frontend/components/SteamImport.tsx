@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+import { useBookshelf } from "@/lib/bookshelf-context";
 
 /** The single source of truth for "is Steam linked" is the backend
  * (GET /profile/steam-status), not a one-time toast tied to how the user
@@ -23,6 +24,7 @@ export default function SteamImport() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { refetch: refetchBookshelf } = useBookshelf();
 
   const [status, setStatus] = useState<SteamStatus | null>(null);
   const [steamIdentifier, setSteamIdentifier] = useState("");
@@ -57,6 +59,7 @@ export default function SteamImport() {
       setState("error");
     } else {
       refreshStatus();
+      refetchBookshelf();
     }
     // Strips the ?steam=... params without navigating away - this
     // component doesn't assume which page it's mounted on (previously
@@ -78,6 +81,10 @@ export default function SteamImport() {
       setResult(res);
       setState("done");
       await refreshStatus();
+      // Steam import can add a whole batch of games in one call, not one
+      // game we could optimistically append like GameActions.tsx does -
+      // only a full refetch can pick up exactly which ones matched.
+      refetchBookshelf();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed");
       setState("error");
