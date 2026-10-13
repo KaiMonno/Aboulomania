@@ -208,6 +208,34 @@ context/tuning but isn't what `/recommendations` reads from.
    Celery/cron scheduling — the sync/match/enrich scripts are meant to be run by hand for now,
    then promoted to a scheduled job once you trust the pipeline.
 
+## Hosted database (ahead of deploy)
+
+Every developer's `games`/`curated_list_games` data has so far lived only in their own local
+Postgres (see "Gotchas found the hard way" above). Ahead of deploying, that catalog - the
+expensive, shared asset (IGDB + HLTB + LLM enrichment) - gets mirrored to a hosted Postgres
+(Neon) so it isn't local-only. Per-user tables (`users`, `wishlist_items`, `user_library_items`,
+`user_preferences`) are deliberately **not** part of this copy - a real deploy gets real
+production user data, not anyone's local dev data.
+
+To set this up (or refresh it after a local enrichment run):
+
+1. Create a Neon project (neon.tech) if you don't have one, and grab its Postgres connection
+   string from the dashboard.
+2. Run schema migrations against it - this creates every table (including the per-user ones,
+   left empty; only their *data* is skipped, not their schema):
+   ```
+   DATABASE_URL_SYNC=postgresql+psycopg2://...<neon-host>.../dbname alembic upgrade head
+   ```
+3. Copy the games catalog data:
+   ```
+   python -m app.scripts.export_games_catalog "postgresql+asyncpg://...<neon-host>.../dbname"
+   ```
+   Safe to re-run - upserts by primary key (`scripts/export_games_catalog.py`).
+
+This does not change local dev - `DATABASE_URL`/`DATABASE_URL_SYNC` in `.env` still point at the
+local docker-compose Postgres day to day. The hosted URL only gets used for the commands above
+(and eventually by the deployed backend itself, via its own production env config).
+
 ## Notes on what's deliberately stubbed
 
 - No Celery/Arq — the "background jobs" from the architecture doc are plain scripts under
