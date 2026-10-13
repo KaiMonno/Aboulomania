@@ -46,7 +46,7 @@ from app.services.hltb_client import match_game as hltb_match_game
 from app.services.igdb_client import IGDBClient
 from app.services.llm_enrichment import ENRICHMENT_VERSION, enrich_game
 from app.services.scoring import apply_hard_filters, restrict_to_curated_list
-from app.services.title_matching import classify_match
+from app.services.title_matching import classify_match, split_year_hint
 from app.scripts.sync_igdb import upsert_games
 
 logging.basicConfig(level=logging.INFO)
@@ -131,11 +131,42 @@ class TitleResolutionReport:
     failures: list[TitleResolutionFailure] = field(default_factory=list)
 
 
+def _igdb_release_year(raw: dict) -> int | None:
+    ts = raw.get("first_release_date")
+    if ts is None:
+        return None
+    return datetime.fromtimestamp(ts, tz=UTC).year
+
+
+def _classify_igdb_results(
+    title: str, year_hint: int | None, raw_results: list[dict]
+) -> tuple[Game | None, str, float | None]:
+    """classify_match against a pool of raw IGDB dicts, promoting an
+    otherwise-ambiguous same-named tie to a confident match when the year
+    hint (see split_year_hint) narrows it to exactly one candidate by
+    first_release_date. Zero or multiple year matches still fall through
+    unresolved - the year narrows ties, it doesn't license a guess.
+    """
+    candidates = [Game(id=r["id"], name=r["name"]) for r in raw_results]
+    game, status, confidence = classify_match(title, candidates)
+    if status == "ambiguous" and year_hint is not None:
+        year_matches = [r for r in raw_results if _igdb_release_year(r) == year_hint]
+        if len(year_matches) == 1:
+            game = Game(id=year_matches[0]["id"], name=year_matches[0]["name"])
+            status, confidence = "matched", 100.0
+    return game, status, confidence
+
+
 async def resolve_titles(session, titles: list[str]) -> tuple[list[Game], TitleResolutionReport]:
     """Resolve a list of titles (in order) to Game rows. Games missing from
     `games` are pulled in via IGDB search + HLTB match (existing client
     code, no new pipeline). Ambiguous or failed resolutions are skipped and
     reported, never guessed - see this module's docstring.
+
+    A title may carry a trailing "(YYYY)" hint (see split_year_hint) - the
+    year is never part of the actual title, so it's stripped before any
+    matching/searching, but reused by _classify_igdb_results to break a
+    same-named-candidates tie.
     """
     resolved: list[Game] = []
     report = TitleResolutionReport()
@@ -145,46 +176,56 @@ async def resolve_titles(session, titles: list[str]) -> tuple[list[Game], TitleR
 
     igdb_client = IGDBClient()
 
-    for title in titles:
+    for raw_title in titles:
+        title, year_hint = split_year_hint(raw_title)
         game, status, confidence = classify_match(title, known_games)
 
         if status == "matched":
             resolved.append(game)
-            report.already_in_db.append(title)
+            report.already_in_db.append(raw_title)
             continue
 
         if status == "ambiguous":
             report.failures.append(
-                TitleResolutionFailure(title, "ambiguous match against existing games", confidence)
+                TitleResolutionFailure(raw_title, "ambiguous match against existing games", confidence)
             )
-            logger.warning("Skipping %r - ambiguous match against existing games (score %s)", title, confidence)
+            logger.warning("Skipping %r - ambiguous match against existing games (score %s)", raw_title, confidence)
             continue
 
         # status == "unmatched" against what's already in the DB - search IGDB.
         try:
             search_results = await igdb_client.search_games(title)
         except Exception as exc:  # noqa: BLE001 - reported, not fatal to the whole run
-            report.failures.append(TitleResolutionFailure(title, f"IGDB search failed: {exc!r}"))
-            logger.warning("Skipping %r - IGDB search failed: %r", title, exc)
-            continue
-
-        if not search_results:
-            report.failures.append(TitleResolutionFailure(title, "no IGDB search results"))
-            logger.warning("Skipping %r - no IGDB search results", title)
+            report.failures.append(TitleResolutionFailure(raw_title, f"IGDB search failed: {exc!r}"))
+            logger.warning("Skipping %r - IGDB search failed: %r", raw_title, exc)
             continue
 
         # Score IGDB's search results with the same matcher used everywhere
         # else, rather than trusting IGDB's top hit blindly.
-        search_candidates = [Game(id=r["id"], name=r["name"]) for r in search_results]
-        igdb_game, igdb_status, igdb_confidence = classify_match(title, search_candidates)
+        igdb_game, igdb_status, igdb_confidence = _classify_igdb_results(title, year_hint, search_results)
+
+        if igdb_status != "matched":
+            # `search`'s own relevance ranking (or its result cap) can bury
+            # or omit a real exact-title match - confirmed live for "No
+            # More Heroes" (see IGDBClient.find_by_contains). Worth one
+            # extra call only on the titles that didn't already resolve.
+            try:
+                fallback_results = await igdb_client.find_by_contains(title)
+            except Exception as exc:  # noqa: BLE001 - fallback failing is not fatal
+                fallback_results = []
+                logger.warning("find_by_contains failed for %r: %r", raw_title, exc)
+            if fallback_results:
+                merged = list({r["id"]: r for r in [*search_results, *fallback_results]}.values())
+                igdb_game, igdb_status, igdb_confidence = _classify_igdb_results(title, year_hint, merged)
+                search_results = merged
 
         if igdb_status != "matched":
             report.failures.append(
-                TitleResolutionFailure(title, f"IGDB search result {igdb_status}", igdb_confidence)
+                TitleResolutionFailure(raw_title, f"IGDB search result {igdb_status}", igdb_confidence)
             )
             logger.warning(
                 "Skipping %r - IGDB search result %s (top candidates: %s)",
-                title,
+                raw_title,
                 igdb_status,
                 [r["name"] for r in search_results[:3]],
             )
@@ -204,7 +245,7 @@ async def resolve_titles(session, titles: list[str]) -> tuple[list[Game], TitleR
 
         resolved.append(db_game)
         known_games.append(db_game)
-        report.added_from_igdb.append(title)
+        report.added_from_igdb.append(raw_title)
         logger.info("Added %r from IGDB (id=%d)", db_game.name, db_game.id)
 
     return resolved, report

@@ -55,10 +55,16 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 # image URL via IGDB's CDN: https://images.igdb.com/igdb/image/upload/
 # t_{size}/{image_id}.jpg - free, no separate image service or per-request
 # cost, same API/credentials already in use. See models.Game.cover_url.
+# `first_release_date` (unix timestamp, confirmed live) is pulled so
+# resolve_titles() can disambiguate same-named search candidates by the
+# year hint a title carries - e.g. "Resident Evil 2 (1998)" against 5
+# IGDB rows all named "Resident Evil 2" with different release dates.
+# Not stored on the `games` table - used transiently during resolution,
+# not a model field.
 GAME_FIELDS = (
     "id,name,summary,genres.name,platforms.name,game_modes.name,rating,rating_count,"
     "similar_games,game_type,collections.name,external_games.uid,external_games.external_game_source,"
-    "cover.image_id"
+    "cover.image_id,first_release_date"
 )
 
 
@@ -119,6 +125,28 @@ class IGDBClient:
             resp.raise_for_status()
             return resp.json()
 
+    async def _post_games_query(self, query: str) -> list[dict]:
+        """POST an apicalypse query to /games with 429 retry/backoff.
+        Title-resolution batches (sync_curated_list/enrich_games
+        --titles-file) call search_games/find_by_contains back-to-back for
+        hundreds of titles with no gap between requests, which measurably
+        exceeds IGDB's 4 req/sec limit (confirmed live: 429s on ~2-5% of
+        calls in a 536-title batch). Retry with backoff rather than letting
+        a transient 429 masquerade as a real title-resolution failure.
+        """
+        for attempt in range(4):
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    f"{IGDB_BASE_URL}/games",
+                    headers=await self._headers(),
+                    content=query,
+                )
+            if resp.status_code == 429 and attempt < 3:
+                await asyncio.sleep(0.5 * (2**attempt))
+                continue
+            resp.raise_for_status()
+            return resp.json()
+
     async def search_games(self, title: str, limit: int = 10) -> list[dict]:
         """Look up a specific title by name (IGDB's `search` apicalypse
         operator - fuzzy/relevance-ranked on IGDB's side), for pulling
@@ -137,24 +165,25 @@ class IGDBClient:
             fields {GAME_FIELDS};
             limit {limit};
         """
-        # Title-resolution batches (sync_curated_list/enrich_games --titles-file)
-        # call this back-to-back for hundreds of titles with no gap between
-        # requests, which measurably exceeds IGDB's 4 req/sec limit (confirmed
-        # live: 429s on ~2-5% of calls in a 536-title batch). Retry with
-        # backoff rather than letting a transient 429 masquerade as a real
-        # title-resolution failure.
-        for attempt in range(4):
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    f"{IGDB_BASE_URL}/games",
-                    headers=await self._headers(),
-                    content=query,
-                )
-            if resp.status_code == 429 and attempt < 3:
-                await asyncio.sleep(0.5 * (2**attempt))
-                continue
-            resp.raise_for_status()
-            return resp.json()
+        return await self._post_games_query(query)
+
+    async def find_by_contains(self, title: str, limit: int = 25) -> list[dict]:
+        """Case-insensitive substring match via apicalypse `~ *"..."*`, as a
+        fallback when search_games' own relevance ranking buries (or its
+        limit cuts off) a real exact-title match - confirmed live: IGDB has
+        "No More Heroes" (id 2272) but search_games("No More Heroes") never
+        surfaces it in its top 25, apparently outranked by unrelated games
+        sharing the common words "No"/"More"/"Hero(es)". No fuzzy reranking
+        on IGDB's side here, unlike `search` - caller still runs this
+        through title_matching.classify_match same as search_games' results.
+        """
+        escaped = title.replace("\\", "\\\\").replace('"', '\\"')
+        query = f"""
+            fields {GAME_FIELDS};
+            where name ~ *"{escaped}"*;
+            limit {limit};
+        """
+        return await self._post_games_query(query)
 
     async def fetch_by_ids(self, ids: list[int]) -> list[dict]:
         """Fetch specific games by id, not a popularity-sorted page - needed

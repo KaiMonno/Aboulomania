@@ -7,9 +7,26 @@ resolution in scripts/enrich_games.py both import this rather than keeping
 two copies of the same logic to drift apart.
 """
 
+import re
+
 from rapidfuzz import fuzz
 
 from app.models import Game
+
+# Game List entries sometimes carry a trailing "(YYYY)" to disambiguate
+# which release/edition is meant (e.g. "ICO (2012)" for the HD remaster vs.
+# the 2001 original) - the year is never actually part of the game's title,
+# just a human-readable hint for the matcher. 1970-2030 covers every
+# plausible real/announced release in this list with margin.
+_YEAR_HINT_RE = re.compile(r"^(.*\S)\s+\((19[7-9]\d|20[0-2]\d|2030)\)$")
+
+
+def split_year_hint(title: str) -> tuple[str, int | None]:
+    """("ICO (2012)") -> ("ICO", 2012). ("ICO", None) if no year suffix."""
+    match = _YEAR_HINT_RE.match(title.strip())
+    if not match:
+        return title, None
+    return match.group(1), int(match.group(2))
 
 # A title is only accepted as a confident match if its best candidate scores
 # at least this well...
