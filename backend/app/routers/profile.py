@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.models import Game, User, UserLibraryItem, UserPreferences
 from app.schemas import (
+    GameOut,
+    LibraryItemOut,
     OwnedPlatformsIn,
     OwnedPlatformsOut,
     SteamImportRequest,
@@ -147,6 +149,25 @@ async def get_steam_status(
     )
     count, last_synced_at = result.one()
     return SteamStatusOut(linked=count > 0, game_count=count, last_synced_at=last_synced_at)
+
+
+@router.get("/library", response_model=list[LibraryItemOut])
+async def get_library(
+    user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> list[LibraryItemOut]:
+    """Every game in this user's owned/played library (UserLibraryItem,
+    either source) with full game data - unlike get_steam_status (a count)
+    or owned-platforms (platform names only), this is the actual list of
+    games, e.g. for a UI that wants to show them. Same query shape as
+    wishlist.get_wishlist.
+    """
+    result = await db.execute(
+        select(UserLibraryItem, Game)
+        .join(Game, Game.id == UserLibraryItem.game_id)
+        .where(UserLibraryItem.user_id == user.id)
+        .order_by(UserLibraryItem.added_at.desc())
+    )
+    return [LibraryItemOut(game=GameOut.model_validate(g), added_at=i.added_at) for i, g in result.all()]
 
 
 @router.post("/played/{game_id}", status_code=204)

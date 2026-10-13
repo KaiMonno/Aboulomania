@@ -90,6 +90,16 @@ class WishlistItemOut(BaseModel):
     added_at: datetime
 
 
+class LibraryItemOut(BaseModel):
+    """A game in the user's owned/played library (UserLibraryItem - Steam
+    import or the "Already played" button), same shape as WishlistItemOut -
+    see routers/profile.py get_library.
+    """
+
+    game: GameOut
+    added_at: datetime
+
+
 class OwnedPlatformsIn(BaseModel):
     # Phase 7: platforms the user actually owns - a persistent, always-on
     # exclusion (see services/scoring.py exclude_unplayable_platforms),

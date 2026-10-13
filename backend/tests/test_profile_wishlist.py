@@ -181,6 +181,22 @@ async def test_unmark_as_played_when_absent_is_a_no_op(session_factory, test_use
         await profile_router.unmark_as_played(any_game_id, user=test_user, db=session)  # must not raise
 
 
+async def test_library_lists_played_games(session_factory, test_user, any_game_id):
+    async with session_factory() as session:
+        await profile_router.mark_as_played(any_game_id, user=test_user, db=session)
+
+    async with session_factory() as session:
+        items = await profile_router.get_library(user=test_user, db=session)
+    assert any(item.game.id == any_game_id for item in items)
+
+    async with session_factory() as session:
+        await profile_router.unmark_as_played(any_game_id, user=test_user, db=session)
+
+    async with session_factory() as session:
+        items = await profile_router.get_library(user=test_user, db=session)
+    assert not any(item.game.id == any_game_id for item in items)
+
+
 async def test_owned_platforms_empty_when_never_saved(session_factory, test_user):
     async with session_factory() as session:
         result = await profile_router.get_owned_platforms(user=test_user, db=session)

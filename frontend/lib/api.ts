@@ -53,6 +53,11 @@ export interface WishlistItem {
   added_at: string;
 }
 
+export interface LibraryItem {
+  game: GameOut;
+  added_at: string;
+}
+
 export interface SteamImportResult {
   total_owned: number;
   matched: number;
@@ -162,6 +167,15 @@ export async function getWishlist(token: string | null): Promise<WishlistItem[]>
 
   if (res.status === 401) return [];
   if (!res.ok) throw new Error(`Failed to load wishlist: ${res.status}`);
+
+  return res.json();
+}
+
+export async function getLibrary(token: string | null): Promise<LibraryItem[]> {
+  const res = await fetch(`${API_URL}/profile/library`, { headers: authHeaders(token) });
+
+  if (res.status === 401) return [];
+  if (!res.ok) throw new Error(`Failed to load library: ${res.status}`);
 
   return res.json();
 }
