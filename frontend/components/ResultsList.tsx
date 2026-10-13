@@ -60,7 +60,7 @@ export default function ResultsList({ results }: { results: RecommendationResult
                   {r.match_score}%
                 </Badge>
               </div>
-              <p className="line-clamp-2 p-2 text-sm font-medium">{r.game.name}</p>
+              <p className="line-clamp-3 p-2 text-sm font-medium">{r.game.name}</p>
             </Link>
           </li>
         );

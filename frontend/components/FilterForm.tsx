@@ -28,7 +28,7 @@ const DEFAULT_STORY_GAMEPLAY_UI = 5;
 // known set where PRIMARY_PLATFORMS lists what stays visible), genres come
 // from the live catalog (GET /games/facets), so this is a short deny-list
 // of the ones to hide rather than an allow-list of everything else.
-const SECONDARY_GENRES = ["Music", "Pinball", "Racing", "Simulator", "Sport", "Roguelite"];
+const SECONDARY_GENRES = ["Music", "Pinball", "Quiz/Trivia", "Racing", "Simulator", "Sport", "Roguelite"];
 
 interface Props {
   onSubmit: (hardFilters: HardFilters, softPreferences: SoftPreferences) => void;

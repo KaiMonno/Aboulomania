@@ -34,3 +34,18 @@ export function getCachedResult(gameId: number): RecommendationResult | null {
     return null;
   }
 }
+
+// Restores the whole last-search batch on the home page (e.g. after
+// clicking a poster into the detail page and back) so the user can click
+// through every result in the batch instead of it resetting to empty on
+// remount - plain client-side nav to "/" remounts Home with fresh state,
+// there's no router-level cache for that.
+export function getLastResults(): RecommendationResult[] {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}

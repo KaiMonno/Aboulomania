@@ -13,7 +13,7 @@ import {
   type RecommendationResult,
   type SoftPreferences,
 } from "@/lib/api";
-import { saveLastResults } from "@/lib/resultsCache";
+import { getLastResults, saveLastResults } from "@/lib/resultsCache";
 
 export default function Home() {
   const { isSignedIn, getToken } = useAuth();
@@ -24,6 +24,15 @@ export default function Home() {
   const [initialHardFilters, setInitialHardFilters] = useState<HardFilters | undefined>(undefined);
   const [initialSoftPreferences, setInitialSoftPreferences] = useState<SoftPreferences | undefined>(undefined);
   const [saveDefaultsState, setSaveDefaultsState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  // Restores the last search's results on mount - a plain <Link href="/">
+  // back from the game detail page remounts this component with fresh
+  // state, which otherwise threw away the whole batch just for clicking
+  // into one game.
+  useEffect(() => {
+    const cached = getLastResults();
+    if (cached.length > 0) setResults(cached);
+  }, []);
 
   useEffect(() => {
     if (!isSignedIn) return;
