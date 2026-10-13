@@ -198,10 +198,17 @@ def _classify_igdb_results(
         # in 2013, same as the real "Cookie Clicker", among 9 candidates
         # IGDB returns for that search) and would otherwise falsely block
         # resolution by making it look like 2+ candidates match the year.
+        #
+        # If nothing shares the exact title, the ambiguity came from
+        # classify_match's fuzzy-margin tie instead of a same-name
+        # collision - there's no confirmed-same-name group to narrow
+        # within, so don't fall back to filtering the whole raw pool by
+        # year: an unrelated, only-loosely-similar title could share the
+        # hinted year by pure coincidence and get wrongly promoted to a
+        # confident match. Leave it ambiguous instead.
         normalized_title = title.strip().casefold()
         same_name = [r for r in raw_results if r["name"].strip().casefold() == normalized_title]
-        pool = same_name if same_name else raw_results
-        year_matches = [r for r in pool if _igdb_release_year(r) == year_hint]
+        year_matches = [r for r in same_name if _igdb_release_year(r) == year_hint]
         if len(year_matches) == 1:
             game = Game(id=year_matches[0]["id"], name=year_matches[0]["name"])
             status, confidence = "matched", 100.0

@@ -160,8 +160,9 @@ class IGDBClient:
         """
         # Note: `search` and `sort` can't be combined in the same apicalypse
         # query - IGDB orders search results by its own relevance score.
+        escaped = title.replace("\\", "\\\\").replace('"', '\\"')
         query = f"""
-            search "{title}";
+            search "{escaped}";
             fields {GAME_FIELDS};
             limit {limit};
         """
