@@ -217,24 +217,40 @@ expensive, shared asset (IGDB + HLTB + LLM enrichment) - gets mirrored to a host
 `user_preferences`) are deliberately **not** part of this copy - a real deploy gets real
 production user data, not anyone's local dev data.
 
-To set this up (or refresh it after a local enrichment run):
+Set up (already done once for this project - project `icy-sound-26337237`, branch `production`;
+these steps are for re-running on a new machine or refreshing after a local enrichment run):
 
-1. Create a Neon project (neon.tech) if you don't have one, and grab its Postgres connection
-   string from the dashboard.
-2. Run schema migrations against it - this creates every table (including the per-user ones,
-   left empty; only their *data* is skipped, not their schema):
+1. `npm i -g neon@latest` (or `npx neon@latest` in place of `neon` below), then from the repo
+   root: `neon init -y --org-id <org-id> --project-id <project-id> --branch production --services postgres`,
+   then `neon login` if it asks, then `neon deploy`. This pulls `DATABASE_URL` (pooled) and
+   `DATABASE_URL_UNPOOLED` (direct) into `.env.local` at the repo root - gitignored, bare
+   `postgresql://` URLs with no SQLAlchemy dialect prefix.
+2. Derive the two URLs this app actually needs (asyncpg wants `ssl=require`, not libpq's
+   `sslmode=require`; psycopg2/Alembic should use the **unpooled** URL - DDL over a pgbouncer
+   pooler in transaction mode is the kind of thing that works until it doesn't):
    ```
-   DATABASE_URL_SYNC=postgresql+psycopg2://...<neon-host>.../dbname alembic upgrade head
+   postgresql+asyncpg://<user>:<pass>@<pooler-host>/<db>?ssl=require        # app runtime
+   postgresql+psycopg2://<user>:<pass>@<direct-host>/<db>?sslmode=require  # Alembic
    ```
-3. Copy the games catalog data:
+   Backend's `.env` keeps these as `NEON_DATABASE_URL`/`NEON_DATABASE_URL_SYNC` (see
+   `.env.example`) - NOT as the default `DATABASE_URL`/`DATABASE_URL_SYNC`, which still point at
+   local Postgres for day-to-day dev. Re-run `neon env pull` any time to refresh `.env.local`,
+   then redo this derivation.
+3. Run schema migrations against it - creates every table, including the per-user ones (left
+   empty; only their *data* is skipped, not their schema):
    ```
-   python -m app.scripts.export_games_catalog "postgresql+asyncpg://...<neon-host>.../dbname"
+   DATABASE_URL_SYNC="$NEON_DATABASE_URL_SYNC" alembic upgrade head
    ```
-   Safe to re-run - upserts by primary key (`scripts/export_games_catalog.py`).
-
-This does not change local dev - `DATABASE_URL`/`DATABASE_URL_SYNC` in `.env` still point at the
-local docker-compose Postgres day to day. The hosted URL only gets used for the commands above
-(and eventually by the deployed backend itself, via its own production env config).
+4. Copy the games catalog data - safe to re-run, upserts by primary key
+   (`scripts/export_games_catalog.py`):
+   ```
+   python -m app.scripts.export_games_catalog "$NEON_DATABASE_URL"
+   ```
+5. To actually run the app against Neon (e.g. to verify end to end, or for a real deploy),
+   override `DATABASE_URL` at process start rather than editing `.env`'s default:
+   ```
+   DATABASE_URL="$NEON_DATABASE_URL" uvicorn app.main:app
+   ```
 
 ## Notes on what's deliberately stubbed
 
