@@ -109,8 +109,8 @@ export default function Home() {
 
   return (
     <>
-      <Bookshelf side="left" items={library} />
-      <Bookshelf side="right" items={wishlist} />
+      <Bookshelf side="left" items={library} label="Owned" />
+      <Bookshelf side="right" items={wishlist} label="Wishlist" />
       <main className="mx-auto max-w-2xl px-4 py-12">
         <h1 className="font-heading text-2xl font-semibold tracking-tight">GameKeep</h1>
         <p className="mt-1 text-muted-foreground">Tell us what you want, we&apos;ll find the game.</p>
