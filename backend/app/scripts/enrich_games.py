@@ -154,6 +154,14 @@ class TitleResolutionReport:
 # - "OFF (2008)": too short/common a title for search_games or
 #   find_by_contains to surface among their result caps - id confirmed via
 #   the user-provided IGDB listing (igdb.com/games/off, slug "off").
+# - "The Void (2008)": "The Void" is common enough that IGDB has 4+ exact-
+#   name entries, and which ones land within search_games/find_by_contains'
+#   result caps varies run to run - the real Ice-Pick Lodge game (id 3273,
+#   dated 2008-04-17) didn't appear in either pool on a live run that still
+#   turned up 4 *other* exact-named candidates. Confirmed by summary, not
+#   just the date: id 3273's description matches the real game's plot
+#   (Sisters/Brothers/Color) - a same-named id with no release date at all
+#   has a vague, generic-sounding summary that doesn't.
 MANUAL_TITLE_OVERRIDES: dict[str, int] = {
     "Resident Evil (1996)": 424,
     "Resident Evil 2 (1998)": 880,
@@ -161,6 +169,7 @@ MANUAL_TITLE_OVERRIDES: dict[str, int] = {
     "Perfect Dark (2000)": 1463,
     "Ketsui: Kizuna Jigoku-tachi (2003)": 7035,
     "OFF (2008)": 24930,
+    "The Void (2008)": 3273,
 }
 
 
