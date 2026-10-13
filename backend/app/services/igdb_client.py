@@ -1,10 +1,12 @@
 """IGDB API client (auth via Twitch OAuth client-credentials flow).
 
 Docs: https://api-docs.igdb.com/
-Rate limit: 4 req/sec - this client does not batch/throttle yet; the sync
-script is the only caller for now and stays well under that on a nightly run.
+Rate limit: 4 req/sec - search_games() retries with backoff on a 429 (see
+below); other methods are only called in low-volume bulk/paginated contexts
+that stay well under the limit.
 """
 
+import asyncio
 import logging
 import time
 
@@ -135,12 +137,22 @@ class IGDBClient:
             fields {GAME_FIELDS};
             limit {limit};
         """
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{IGDB_BASE_URL}/games",
-                headers=await self._headers(),
-                content=query,
-            )
+        # Title-resolution batches (sync_curated_list/enrich_games --titles-file)
+        # call this back-to-back for hundreds of titles with no gap between
+        # requests, which measurably exceeds IGDB's 4 req/sec limit (confirmed
+        # live: 429s on ~2-5% of calls in a 536-title batch). Retry with
+        # backoff rather than letting a transient 429 masquerade as a real
+        # title-resolution failure.
+        for attempt in range(4):
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    f"{IGDB_BASE_URL}/games",
+                    headers=await self._headers(),
+                    content=query,
+                )
+            if resp.status_code == 429 and attempt < 3:
+                await asyncio.sleep(0.5 * (2**attempt))
+                continue
             resp.raise_for_status()
             return resp.json()
 
