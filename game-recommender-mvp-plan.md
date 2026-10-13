@@ -276,8 +276,24 @@ never recommendation candidates.
     selection includes one of the hidden ones. Extracted into a shared `PlatformPicker` component
     once a second page needed the identical picker, rather than duplicating it.
 
-**Phase 8 (stretch) — Backloggd import**
-- Only if a reliable, ToS-acceptable path exists; otherwise leave as manual CSV import from the user
+**Phase 8 (stretch) — Backloggd import (researched: no automated path, manual import is the only option)**
+- Checked directly (not assumed, same discipline as Phase 7's IGDB check): no official API exists;
+  no CSV/data export ships yet (listed on Backloggd's own roadmap as a future item, unshipped);
+  and the entire site - not just the Top 100 page Phase 3.6 already hit this on - sits behind
+  BunnyCDN's "Bunny Shield" bot-challenge. Confirmed via raw HTTP headers against the plain
+  homepage: `cdn-challenge: true`, `errorcode: 112`, 403 to any non-browser client.
+- This rules out server-side scraping within this project's architecture (FastAPI + `httpx`, no
+  JS execution) - same conclusion and same reasoning as the Top 100 benchmark's "needs a real
+  headless browser, a meaningfully heavier dependency, out of scope" call, just confirmed here for
+  a full user-library import instead of a one-time 100-title list. Adding a headless browser
+  wouldn't even guarantee success (Bunny Shield is built to catch those too), and deliberately
+  bypassing a vendor's bot protection to pull a user's account data is a ToS risk regardless of
+  whether it technically works - not a tradeoff worth making for a stretch feature.
+- **Only remaining path: manual import** - a user exports or copy/pastes their own list from
+  Backloggd, we parse whatever they provide and resolve titles via the same
+  IGDB-search/HLTB-match flow `sync_curated_list.py`/`enrich_games.py --titles-file` already use.
+  Not built yet - this phase is still open, just scoped down to "manual upload parser," not
+  "automated sync," the way the plan always said it would if no reliable path turned up.
 
 ---
 
