@@ -20,10 +20,25 @@ function Tooltip({
       <TooltipPrimitive.Trigger render={<span>{children}</span>} />
       <TooltipPrimitive.Portal>
         {/* z-[100]: well above the bookshelf frame (z-10) and packed rows
-            of other spines - found live that the default "top" placement
-            could render a tooltip overlapping a neighboring spine one row
-            up in a tightly-packed shelf, see Bookshelf.tsx's side prop. */}
-        <TooltipPrimitive.Positioner side={side} sideOffset={8} collisionPadding={8}>
+            of other spines.
+            collisionAvoidance={side:"none"}: base-ui's default collision
+            boundary is "clipping-ancestors" - for a book inside
+            Bookshelf.tsx's narrow overflow-y-auto shelf, that boundary is
+            the shelf's own ~144px-wide box, not the viewport, even though
+            the popup itself is portaled out to <body>. With the default
+            "flip" behavior, the requested `side` (deliberately pointed
+            away from the shelf, into the open page) almost always
+            "doesn't fit" that narrow boundary, so it silently flipped
+            back toward the shelf - landing on top of a neighboring spine,
+            which is exactly the overlap this was meant to avoid. Pinning
+            side avoidance to "none" makes it always honor the requested
+            side instead of auto-correcting against the wrong boundary. */}
+        <TooltipPrimitive.Positioner
+          side={side}
+          sideOffset={8}
+          collisionPadding={8}
+          collisionAvoidance={{ side: "none", align: "none" }}
+        >
           <TooltipPrimitive.Popup
             className={cn(
               "z-[100] rounded-md border bg-popover px-2 py-1 text-xs whitespace-nowrap text-popover-foreground shadow-md"
