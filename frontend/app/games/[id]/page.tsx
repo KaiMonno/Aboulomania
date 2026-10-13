@@ -10,10 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SaveButton, PlayedButton } from "@/components/GameActions";
 
-// Same decorative cover-color cycle as ResultsList/BookshelfBanner - keyed
-// by game id here (rather than position in a list, which this page
-// doesn't have) so a given game's fallback color is at least stable
-// across visits, not that it needs to match anything specific.
+// Same decorative cover-color cycle as ResultsList - keyed by game id here
+// (rather than position in a list, which this page doesn't have) so a
+// given game's fallback color is at least stable across visits, not that
+// it needs to match anything specific.
 const SPINE_COLORS = ["--spine-1", "--spine-2", "--spine-3", "--spine-4", "--spine-5"] as const;
 
 function matchBadgeVariant(score: number): "default" | "secondary" | "outline" {

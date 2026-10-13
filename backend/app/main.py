@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import games, profile, recommendations, wishlist
 
-app = FastAPI(title="GameTaste API")
+app = FastAPI(title="GameKeep API")
 
 app.add_middleware(
     CORSMiddleware,

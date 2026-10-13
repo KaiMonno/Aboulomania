@@ -6,9 +6,9 @@ import type { RecommendationResult } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 
 // Decorative-only "book cover" colors cycled per result, independent of
-// the semantic theme tokens - same palette the BookshelfBanner illustration
-// and the detail page's fallback cover use, so a game with no real box art
-// still looks intentional rather than like a broken image.
+// the semantic theme tokens - same palette the detail page's fallback
+// cover uses, so a game with no real box art still looks intentional
+// rather than like a broken image.
 const SPINE_COLORS = ["--spine-1", "--spine-2", "--spine-3", "--spine-4", "--spine-5"] as const;
 
 function matchBadgeVariant(score: number): "default" | "secondary" | "outline" {

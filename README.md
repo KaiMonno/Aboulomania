@@ -1,4 +1,7 @@
-# GameTaste
+# GameKeep
+
+*(App name only - the GitHub repo itself is still `GameTaste`, see the clone command below; ask
+if you want that renamed too, it's a separate, bigger action.)*
 
 AI game recommender. See [game-recommender-mvp-plan.md](game-recommender-mvp-plan.md) and
 [game-recommender-architecture.md](game-recommender-architecture.md) for the full plan and the

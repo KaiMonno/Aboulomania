@@ -22,7 +22,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "GameTaste",
+  title: "GameKeep",
   description: "AI-powered game recommendations",
 };
 
@@ -42,11 +42,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 {/* eslint-disable-next-line @next/next/no-img-element -- tiny pixel-art logo; next/image's resampling would blur it, image-rendering:pixelated keeps it crisp */}
                 <img
                   src="/logo.png"
-                  alt="GameTaste"
+                  alt="GameKeep"
                   className="size-6"
                   style={{ imageRendering: "pixelated" }}
                 />
-                GameTaste
+                GameKeep
               </Link>
               <div className="flex items-center gap-2">
                 <SignedIn>
