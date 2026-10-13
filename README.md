@@ -252,6 +252,25 @@ these steps are for re-running on a new machine or refreshing after a local enri
    DATABASE_URL="$NEON_DATABASE_URL" uvicorn app.main:app
    ```
 
+### If a teammate needs access to this (not creating their own)
+
+The Neon project (`icy-sound-26337237`, org `org-orange-forest-22978323`) already exists -
+**don't create a new one**. The project owner needs to invite the teammate first (Neon dashboard
+→ org/project members - this has to be done by whoever owns the Neon account, it can't be
+scripted from here). Once invited:
+
+1. `npm i -g neon@latest`, then from the repo root:
+   `neon init -y --org-id org-orange-forest-22978323 --project-id icy-sound-26337237 --branch production --services postgres`
+2. `neon login` (their own Neon account - this opens a browser sign-in).
+3. `neon env pull` - pulls the same `DATABASE_URL`/`DATABASE_URL_UNPOOLED` into *their own*
+   gitignored `.env.local`. Derive `NEON_DATABASE_URL`/`NEON_DATABASE_URL_SYNC` from those the
+   same way (step 2 above) and add them to their own `backend/.env`.
+
+This does **not** change their day-to-day workflow - their local Postgres (docker-compose) is
+still what `DATABASE_URL`/`DATABASE_URL_SYNC` point at by default, same as before. The Neon
+access only matters when someone needs to refresh the hosted catalog mirror or test/deploy
+against it.
+
 ## Notes on what's deliberately stubbed
 
 - No Celery/Arq — the "background jobs" from the architecture doc are plain scripts under
