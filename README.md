@@ -16,8 +16,10 @@ rather than built on a guess). That's the full core loop (hard filters → soft-
 diversity selection → live LLM "why you'll like it" blurbs) *and* the full profile system (Clerk
 accounts, saved preference defaults, wishlist, Steam library import via OpenID sign-in or a
 pasted profile URL, manual "Already played" marking, owned-platforms exclusion) - all working
-end to end, signed-in or anonymous. Not yet: the rest of Phase 7, Phase 8 (Backloggd import), and
-Celery/cron scheduling (the sync/enrich/backfill scripts are still run by hand).
+end to end, signed-in or anonymous. **Phase 9** (homepage bookshelf margins - owned games/
+wishlist visualized as book spines) is also done. Not yet: the rest of Phase 7, Phase 8
+(Backloggd import), and Celery/cron scheduling (the sync/enrich/backfill scripts are still run
+by hand).
 If you're picking this up fresh, read **"Gotchas found the hard way"** below before you start -
 every one of them cost real debugging time once already.
 

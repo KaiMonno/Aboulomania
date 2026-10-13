@@ -295,6 +295,20 @@ never recommendation candidates.
   Not built yet - this phase is still open, just scoped down to "manual upload parser," not
   "automated sync," the way the plan always said it would if no reliable path turned up.
 
+**Phase 9 — Bookshelf margins (profile visualization, done)**
+- Homepage-only margin columns (left: owned/played games, right: wishlist), visible at `xl:` and
+  up next to the centered results column - a signed-in user's collection filling up as they play/
+  wishlist more games, rather than that being invisible until they visit `/profile`/`/wishlist`.
+- Deliberately minimal placeholder art, not a one-off: each "book" is a single `lucide-react`
+  `Book` icon tinted via the existing `--spine-1`..`--spine-5` decorative palette (already used
+  for fallback covers on `ResultsList`/the detail page) - reuses the app's existing "book" visual
+  language instead of inventing a second one, and is trivially swappable for real custom art
+  later (one icon element per entry, no asset pipeline to touch).
+- Needed a new backend endpoint: the wishlist side was already fully served by `GET /wishlist`,
+  but the owned/played side (`UserLibraryItem`, via Steam import or "Already played") had no GET
+  endpoint - only mark/unmark actions and a count. Added `GET /profile/library`, mirroring
+  `wishlist.get_wishlist`'s query shape.
+
 ---
 
 ## 5. Open Risks to Resolve Before Building
