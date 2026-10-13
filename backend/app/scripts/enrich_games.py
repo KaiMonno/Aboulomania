@@ -150,7 +150,16 @@ def _classify_igdb_results(
     candidates = [Game(id=r["id"], name=r["name"]) for r in raw_results]
     game, status, confidence = classify_match(title, candidates)
     if status == "ambiguous" and year_hint is not None:
-        year_matches = [r for r in raw_results if _igdb_release_year(r) == year_hint]
+        # Narrow within the same-name group that's actually tied, not the
+        # whole raw candidate pool - an unrelated candidate can share the
+        # hinted year by coincidence (e.g. "Cookie Clickers" also released
+        # in 2013, same as the real "Cookie Clicker", among 9 candidates
+        # IGDB returns for that search) and would otherwise falsely block
+        # resolution by making it look like 2+ candidates match the year.
+        normalized_title = title.strip().casefold()
+        same_name = [r for r in raw_results if r["name"].strip().casefold() == normalized_title]
+        pool = same_name if same_name else raw_results
+        year_matches = [r for r in pool if _igdb_release_year(r) == year_hint]
         if len(year_matches) == 1:
             game = Game(id=year_matches[0]["id"], name=year_matches[0]["name"])
             status, confidence = "matched", 100.0
