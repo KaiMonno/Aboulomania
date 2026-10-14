@@ -38,10 +38,20 @@ function Tooltip({
           sideOffset={8}
           collisionPadding={8}
           collisionAvoidance={{ side: "none", align: "none" }}
+          // z-index has to live HERE, not on Popup below: the Positioner
+          // is the element base-ui actually gives `position: absolute`
+          // (confirmed by reading its source) - it's the only "positioned"
+          // element in this subtree, and z-index has no effect at all on
+          // a non-positioned element per the CSS spec. Setting it on
+          // Popup (a plain static <div>) was a no-op the whole time,
+          // which is why neither of the last two attempts changed
+          // anything - the book icons were always winning on DOM/paint
+          // order, not because of some boundary or direction issue.
+          className="z-[100]"
         >
           <TooltipPrimitive.Popup
             className={cn(
-              "z-[100] rounded-md border bg-popover px-2 py-1 text-xs whitespace-nowrap text-popover-foreground shadow-md"
+              "rounded-md border bg-popover px-2 py-1 text-xs whitespace-nowrap text-popover-foreground shadow-md"
             )}
           >
             {content}
