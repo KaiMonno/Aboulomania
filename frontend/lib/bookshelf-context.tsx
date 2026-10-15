@@ -69,7 +69,15 @@ export function BookshelfProvider({ children }: { children: ReactNode }) {
     setLastAdded({ side, gameId: game.id });
     // Clears the "just added" flag once the shelf's pop animation has had
     // time to play - without this it would just linger on that id forever.
-    window.setTimeout(() => setLastAdded((cur) => (cur?.gameId === game.id ? null : cur)), 700);
+    // Checks `side` too, not just gameId: the same game can be noteAdded
+    // on both shelves within 700ms (e.g. wishlisted then marked played in
+    // quick succession) - without the side check, the first call's timeout
+    // would clear the second call's highlight early, cutting its
+    // animation short even though it's a different shelf's entry.
+    window.setTimeout(
+      () => setLastAdded((cur) => (cur?.gameId === game.id && cur?.side === side ? null : cur)),
+      700
+    );
   }, []);
 
   const noteRemoved = useCallback((side: Side, gameId: number) => {
