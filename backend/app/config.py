@@ -30,6 +30,16 @@ class Settings(BaseSettings):
     clerk_jwt_key: str = ""
     clerk_authorized_parties: str = "http://localhost:3000"
 
+    # Comma-separated production frontend origin(s), e.g.
+    # "https://gamekeep.com,https://www.gamekeep.com" - additive to the
+    # localhost regex in main.py (dev keeps working unchanged), not a
+    # replacement for it. Empty by default; set this at deploy time once
+    # a domain is live, or every API call from the deployed frontend gets
+    # a browser-side CORS error that looks identical to the backend being
+    # down, same failure mode the existing localhost regex comment warns
+    # about for a wrong port.
+    cors_allowed_origins: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:

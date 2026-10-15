@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import get_settings
 from app.routers import games, profile, recommendations, wishlist
 
 app = FastAPI(title="GameKeep API")
@@ -13,6 +14,10 @@ app.add_middleware(
     # frontend fetch with a browser-side CORS error that looks identical to
     # the backend being down, with no server-side log to point at why.
     allow_origin_regex=r"http://localhost:\d+",
+    # Additive, not a replacement - production origin(s) from
+    # CORS_ALLOWED_ORIGINS (see config.py), empty/none in dev. CORSMiddleware
+    # allows a request matching EITHER allow_origin_regex OR allow_origins.
+    allow_origins=[o.strip() for o in get_settings().cors_allowed_origins.split(",") if o.strip()],
     allow_methods=["*"],
     allow_headers=["*"],
 )

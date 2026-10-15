@@ -273,6 +273,35 @@ still what `DATABASE_URL`/`DATABASE_URL_SYNC` point at by default, same as befor
 access only matters when someone needs to refresh the hosted catalog mirror or test/deploy
 against it.
 
+## Before deploying
+
+Checked directly against the code, not assumed - these are the config changes that are needed
+once a real domain/hosting target exists, not yet done since no production URLs have existed
+until now:
+
+- **Backend CORS is localhost-only today** (`backend/app/main.py`) - the deployed frontend's
+  origin has to be added via `CORS_ALLOWED_ORIGINS` (comma-separated, see `.env.example`) or
+  every request from it fails CORS with an error that looks identical to the backend being down.
+  Additive to the existing localhost regex, not a replacement - local dev is unaffected either way.
+- **`CLERK_AUTHORIZED_PARTIES`** (backend) needs the real deployed frontend origin(s), not the
+  `http://localhost:3000` default.
+- **Clerk dev vs. production instance** - the keys currently in use
+  (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`/`CLERK_SECRET_KEY`/`CLERK_JWT_KEY`) are Clerk's
+  **development** instance (`pk_test_...`/`sk_test_...`). A real deploy needs a **Production**
+  instance from the Clerk dashboard (live `pk_live_...`/`sk_live_...` keys) - this also requires
+  verifying the production domain with Clerk (DNS records), done once a domain is picked.
+- **`NEXT_PUBLIC_API_URL`** (frontend) needs to point at the deployed backend's real URL, not
+  `localhost:8000`.
+- **`DATABASE_URL`/`DATABASE_URL_SYNC`** (backend, production environment) should be the Neon
+  URLs from "Hosted database" above, not the local-Postgres defaults baked into `config.py`.
+- **IGDB/Anthropic/Steam keys** - decide whether production reuses the personal dev keys
+  currently in `backend/.env` or gets its own; either works technically, but shared personal
+  keys mean production usage shows up against your own account's quota/billing.
+- **Steam OpenID needs no extra config** - confirmed by reading `app/api/steam-openid/*`: the
+  realm/return_to URLs are built from the live request's own origin at runtime, not hardcoded or
+  pre-registered with Steam, so this already works against whatever domain the frontend is
+  deployed to with zero changes.
+
 ## Notes on what's deliberately stubbed
 
 - No Celery/Arq — the "background jobs" from the architecture doc are plain scripts under
