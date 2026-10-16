@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.routers import games, profile, recommendations, wishlist
 
-app = FastAPI(title="GameKeep API")
+app = FastAPI(title="Aboulomania API")
 
 app.add_middleware(
     CORSMiddleware,
