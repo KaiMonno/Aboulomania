@@ -51,6 +51,16 @@ async def get_current_clerk_user_id(request: Request) -> str:
     )
 
     if not state.is_signed_in or not state.payload:
+        # state.reason/.message (from clerk_backend_api's RequestState) carry
+        # the SPECIFIC failure - expired token, bad signature, clock skew,
+        # wrong authorized party, JWKS fetch failure, etc. - that the 401
+        # below deliberately does NOT expose to the client (don't hand an
+        # attacker a verification oracle), but swallowing it entirely was a
+        # real "best-effort path hides a real bug" case live: every
+        # production auth failure looked identical from the client's side
+        # with no way to tell config-wrong from token-expired from
+        # clock-skew apart. Logged server-side only.
+        logger.warning("Clerk auth failed: reason=%s message=%s", state.reason, state.message)
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     user_id = state.payload.get("sub")
