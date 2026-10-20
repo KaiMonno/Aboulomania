@@ -9,6 +9,10 @@ AI game recommender. See [game-recommender-mvp-plan.md](game-recommender-mvp-pla
 reasoning behind every decision - both are kept current, phase by phase, as the single source of
 truth for *why* something works the way it does, not just *what* the code does.
 
+**Live in production at [aboulomania.com](https://aboulomania.com).** Frontend on Vercel, backend
+on Railway (`api.aboulomania.com`), database on Neon, auth on Clerk's production instance - see
+"Production deployment" below for how that's wired and how to change it.
+
 **Current state: Phases 1-6 are done**, plus a minimal manual "Already played" exclusion button
 (folded into Phase 6) and the "platforms you own" piece of Phase 7 (see mvp-plan.md - PC specs/
 emulator support/controller availability, Phase 7's other three sub-features, were checked
@@ -17,10 +21,16 @@ rather than built on a guess). That's the full core loop (hard filters → soft-
 diversity selection → live LLM "why you'll like it" blurbs) *and* the full profile system (Clerk
 accounts, saved preference defaults, wishlist, Steam library import via OpenID sign-in or a
 pasted profile URL, manual "Already played" marking, owned-platforms exclusion) - all working
-end to end, signed-in or anonymous. **Phase 9** (homepage bookshelf margins - owned games/
-wishlist visualized as book spines) is also done. Not yet: the rest of Phase 7, Phase 8
-(Backloggd import), and Celery/cron scheduling (the sync/enrich/backfill scripts are still run
-by hand).
+end to end, signed-in or anonymous, in production. **Phase 9** (homepage bookshelf margins -
+owned games/wishlist visualized as book spines) is also done.
+
+**What's actually left** (see "Known issues" near the end for the one live bug worth prioritizing
+over these): the rest of Phase 7 (deferred, not scheduled - no data exists to build it on), Phase
+8 (Backloggd import - researched, manual-paste parser not built), Celery/cron scheduling (sync/
+enrich/backfill scripts still run by hand), a frontend picker UI for `similar_to_game_id` (wired
+on the backend, no way to pick a game from the UI yet), and replacing the bookshelf's placeholder
+book-icon art with real art (deliberately deferred by design, see `Bookshelf.tsx`).
+
 If you're picking this up fresh, read **"Gotchas found the hard way"** below before you start -
 every one of them cost real debugging time once already.
 
@@ -157,6 +167,32 @@ something's broken.
   "pull" another developer's catalog data via git. If recommendations come back empty or a
   game you expect is missing, that's almost always "I haven't synced/enriched/curated this game
   on my machine yet," not a code bug.
+- **Railway's Nixpacks needs the Python version pinned, or it silently breaks the DB driver
+  install.** With no `.python-version`, it picked a Python newer than `psycopg2-binary`/`asyncpg`
+  have prebuilt wheels for, so `pip install` fell back to compiling from source and failed on a
+  missing compiler/Postgres headers in the build image. Fixed by committing `backend/.python-version`
+  pinned to `3.12` (the newest version both packages ship wheels for) - if either gets bumped to a
+  version with wheels for something newer, this can follow, but don't just delete the pin.
+- **A generic 401 can hide which of several independent things is actually wrong - log the SDK's
+  real reason, don't trust "it looks configured right."** Clerk's `authenticate_request_async`
+  returns a specific `RequestState.reason` (expired token, bad signature, clock skew, wrong
+  authorized party, JWKS fetch failure, ...) on every failure, but `services/auth.py` was
+  swallowing it into one generic "Not authenticated" - every production auth failure looked
+  identical regardless of cause. Cost real time ruling out a wrong Clerk application, a stale
+  `CLERK_JWT_KEY`, and a stale `CLERK_SECRET_KEY` one at a time, by hand, before adding
+  `logger.warning("Clerk auth failed: reason=%s message=%s", ...)` finally showed the real cause
+  in one Railway log line. If Clerk auth ever breaks again, check that log line **first**, not last.
+- **`CLERK_AUTHORIZED_PARTIES` has to match the exact origin the browser ends up on, not just
+  "the domain."** `aboulomania.com` (apex) redirects to `www.aboulomania.com` - Clerk embeds
+  *that* post-redirect origin in the token's `azp` claim, so having only the apex (no `www`) in
+  `CLERK_AUTHORIZED_PARTIES` fails every authenticated request with `TOKEN_INVALID_AUTHORIZED_PARTIES`,
+  even though the domain "looks" configured. Set both: `https://aboulomania.com,https://www.aboulomania.com`.
+- **A Clerk production instance needs its own CNAME verified before sign-in does anything at
+  all.** Clerk's production key is tied to a dedicated subdomain (e.g. `clerk.aboulomania.com`)
+  that has to resolve via a CNAME from Clerk's dashboard - until that DNS record exists and
+  propagates, Clerk's JS never loads, so the Sign In button renders but clicking it does
+  nothing (no error, no console message pointing at DNS - just silence). If sign-in is inert in
+  production, check whether that subdomain resolves before anything else.
 
 ## What to do first (in order)
 
@@ -274,34 +310,43 @@ still what `DATABASE_URL`/`DATABASE_URL_SYNC` point at by default, same as befor
 access only matters when someone needs to refresh the hosted catalog mirror or test/deploy
 against it.
 
-## Before deploying
+## Production deployment
 
-Checked directly against the code, not assumed - these are the config changes that are needed
-once a real domain/hosting target exists, not yet done since no production URLs have existed
-until now:
+Live at **aboulomania.com**. This is how it's actually wired - follow this to redeploy, rotate a
+key, or stand up a second environment (staging, a fork, etc.), not as a pending checklist.
 
-- **Backend CORS is localhost-only today** (`backend/app/main.py`) - the deployed frontend's
-  origin has to be added via `CORS_ALLOWED_ORIGINS` (comma-separated, see `.env.example`) or
-  every request from it fails CORS with an error that looks identical to the backend being down.
-  Additive to the existing localhost regex, not a replacement - local dev is unaffected either way.
-- **`CLERK_AUTHORIZED_PARTIES`** (backend) needs the real deployed frontend origin(s), not the
-  `http://localhost:3000` default.
-- **Clerk dev vs. production instance** - the keys currently in use
-  (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`/`CLERK_SECRET_KEY`/`CLERK_JWT_KEY`) are Clerk's
-  **development** instance (`pk_test_...`/`sk_test_...`). A real deploy needs a **Production**
-  instance from the Clerk dashboard (live `pk_live_...`/`sk_live_...` keys) - this also requires
-  verifying the production domain with Clerk (DNS records), done once a domain is picked.
-- **`NEXT_PUBLIC_API_URL`** (frontend) needs to point at the deployed backend's real URL, not
-  `localhost:8000`.
-- **`DATABASE_URL`/`DATABASE_URL_SYNC`** (backend, production environment) should be the Neon
-  URLs from "Hosted database" above, not the local-Postgres defaults baked into `config.py`.
-- **IGDB/Anthropic/Steam keys** - decide whether production reuses the personal dev keys
-  currently in `backend/.env` or gets its own; either works technically, but shared personal
-  keys mean production usage shows up against your own account's quota/billing.
-- **Steam OpenID needs no extra config** - confirmed by reading `app/api/steam-openid/*`: the
-  realm/return_to URLs are built from the live request's own origin at runtime, not hardcoded or
-  pre-registered with Steam, so this already works against whatever domain the frontend is
-  deployed to with zero changes.
+- **Frontend**: Vercel, deployed from this repo's `frontend/` directory (Root Directory setting),
+  auto-deploys on push to `main`. Custom domain `aboulomania.com` + `www.aboulomania.com`
+  (apex redirects to `www`); env vars `NEXT_PUBLIC_API_URL` (the Railway backend URL below),
+  `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`/`CLERK_SECRET_KEY` (Clerk's **production**, not
+  development, instance - `pk_live_.../sk_live_...`).
+- **Backend**: Railway, deployed from `backend/`, also auto-deploys on push to `main`. Custom
+  domain `api.aboulomania.com`. Needs `backend/.python-version` pinned (see Gotchas) and these
+  env vars set to production values, not the local-dev defaults baked into `config.py`:
+  `DATABASE_URL`/`DATABASE_URL_SYNC` (the Neon URLs from "Hosted database" above),
+  `CORS_ALLOWED_ORIGINS=https://aboulomania.com,https://www.aboulomania.com` (additive to the
+  always-on localhost regex in `main.py`, doesn't affect local dev),
+  `CLERK_AUTHORIZED_PARTIES` (same two origins - see Gotchas for why both are required),
+  `CLERK_SECRET_KEY`/`CLERK_JWT_KEY` (Clerk's production instance, matching the frontend's
+  publishable key - mismatched dev/production keys between frontend and backend fail silently
+  as generic 401s, see Gotchas), and your own `IGDB`/`ANTHROPIC`/`STEAM` keys.
+- **Database**: Neon, see "Hosted database" above for setup/refresh.
+- **Auth**: Clerk production instance, with its own CNAME (`clerk.aboulomania.com`) verified in
+  Clerk's dashboard - required before sign-in works at all, see Gotchas.
+- **Steam OpenID needs no deploy-specific config** - confirmed by reading `app/api/steam-openid/*`:
+  the realm/return_to URLs are built from the live request's own origin at runtime, not hardcoded
+  or pre-registered with Steam, so it already works against whatever domain the frontend is on.
+
+## Known issues
+
+- **Intermittent 500 on any endpoint that queries `games` - `asyncpg.exceptions.InterfaceError:
+  connection is closed`** (seen live on `/games/facets` in Railway's logs). SQLAlchemy's async
+  engine (`backend/app/db.py`) holds a connection pool with no `pool_pre_ping`/`pool_recycle`
+  set, so a connection Neon has silently closed server-side (idle timeout, scale-to-zero) isn't
+  detected until a request actually tries to use it - that request then 500s instead of the pool
+  transparently reconnecting. Not yet fixed. Likely fix: `create_async_engine(..., pool_pre_ping=True)`
+  in `db.py`, possibly with a `pool_recycle` shorter than Neon's idle timeout - worth confirming
+  Neon's actual timeout rather than guessing a value.
 
 ## Notes on what's deliberately stubbed
 
