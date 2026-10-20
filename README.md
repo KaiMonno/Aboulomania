@@ -1,8 +1,9 @@
 # Aboulomania
 
-*(App name only - the GitHub repo itself is still `GameTaste` (previously renamed to "GameKeep"
-in branding only, now "Aboulomania"), see the clone command below; ask if you want the repo
-itself renamed too, it's a separate, bigger action.)*
+*(The GitHub repo was renamed to match: `KaiMonno/GameTaste` → `KaiMonno/Aboulomania`. GitHub
+redirects the old clone/fetch/push URL automatically, but if your local clone still points at
+the old name, run `git remote set-url origin git@github.com:KaiMonno/Aboulomania.git` to update
+it - the redirect isn't guaranteed to work forever.)*
 
 AI game recommender. See [game-recommender-mvp-plan.md](game-recommender-mvp-plan.md) and
 [game-recommender-architecture.md](game-recommender-architecture.md) for the full plan and the
@@ -53,14 +54,14 @@ frontend/   Next.js filter form + results list
   - macOS: `brew install python@3.12`, then use `python3.12` below
   - Linux: `sudo apt install python3.12 python3.12-venv` (or your distro's equivalent)
 - Node 18+ and npm (`node --version`)
-- Git, and SSH access to `git@github.com:KaiMonno/GameTaste.git` if you'll push
+- Git, and SSH access to `git@github.com:KaiMonno/Aboulomania.git` if you'll push
 
 **Steps:**
 
 1. **Clone and enter the repo:**
    ```
-   git clone git@github.com:KaiMonno/GameTaste.git
-   cd GameTaste
+   git clone git@github.com:KaiMonno/Aboulomania.git
+   cd Aboulomania
    ```
 
 2. **Start Postgres + Redis:**
