@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { getGame, type GameOut, type RecommendationResult } from "@/lib/api";
 import { getCachedResult } from "@/lib/resultsCache";
@@ -174,13 +173,8 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
         </dl>
 
         <div className="flex flex-wrap items-center gap-3 pt-2">
-          <SignedIn>
-            <SaveButton game={game} />
-            <PlayedButton game={game} />
-          </SignedIn>
-          <SignedOut>
-            <span className="text-sm text-muted-foreground">Sign in to save or exclude games</span>
-          </SignedOut>
+          <SaveButton game={game} />
+          <PlayedButton game={game} />
         </div>
       </div>
     </main>

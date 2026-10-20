@@ -13,11 +13,20 @@ import { useBookshelf } from "@/lib/bookshelf-context";
 // don't need to know anything about where they're rendered.
 
 export function SaveButton({ game }: { game: GameOut }) {
-  const { getToken } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const { noteAdded } = useBookshelf();
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   async function handleClick() {
+    // Signed out: no account to save to yet - noteAdded persists this
+    // locally (lib/anonProgress.ts) and it gets pushed into the real
+    // account automatically the moment they sign in. No network call here,
+    // nothing to fail.
+    if (!isSignedIn) {
+      noteAdded("right", game);
+      setState("saved");
+      return;
+    }
     setState("saving");
     try {
       const token = await getToken();
@@ -54,11 +63,17 @@ export function SaveButton({ game }: { game: GameOut }) {
 }
 
 export function PlayedButton({ game }: { game: GameOut }) {
-  const { getToken } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const { noteAdded, noteRemoved } = useBookshelf();
   const [state, setState] = useState<"idle" | "marking" | "marked" | "error">("idle");
 
   async function handleClick() {
+    // Signed out: same local-only path as SaveButton above.
+    if (!isSignedIn) {
+      noteAdded("left", game);
+      setState("marked");
+      return;
+    }
     setState("marking");
     try {
       const token = await getToken();
@@ -71,6 +86,11 @@ export function PlayedButton({ game }: { game: GameOut }) {
   }
 
   async function handleUndo() {
+    if (!isSignedIn) {
+      setState("idle");
+      noteRemoved("left", game.id);
+      return;
+    }
     try {
       const token = await getToken();
       await unmarkAsPlayed(token, game.id);
