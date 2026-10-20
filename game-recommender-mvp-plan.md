@@ -276,7 +276,7 @@ never recommendation candidates.
     selection includes one of the hidden ones. Extracted into a shared `PlatformPicker` component
     once a second page needed the identical picker, rather than duplicating it.
 
-**Phase 8 (stretch) — Backloggd import (researched: no automated path, manual import is the only option)**
+**Phase 8 (stretch) — Backloggd import (shelved: the only viable path turned out infeasible too)**
 - Checked directly (not assumed, same discipline as Phase 7's IGDB check): no official API exists;
   no CSV/data export ships yet (listed on Backloggd's own roadmap as a future item, unshipped);
   and the entire site - not just the Top 100 page Phase 3.6 already hit this on - sits behind
@@ -289,11 +289,18 @@ never recommendation candidates.
   wouldn't even guarantee success (Bunny Shield is built to catch those too), and deliberately
   bypassing a vendor's bot protection to pull a user's account data is a ToS risk regardless of
   whether it technically works - not a tradeoff worth making for a stretch feature.
-- **Only remaining path: manual import** - a user exports or copy/pastes their own list from
+- **Only remaining path was manual import** - a user exports or copy/pastes their own list from
   Backloggd, we parse whatever they provide and resolve titles via the same
   IGDB-search/HLTB-match flow `sync_curated_list.py`/`enrich_games.py --titles-file` already use.
-  Not built yet - this phase is still open, just scoped down to "manual upload parser," not
-  "automated sync," the way the plan always said it would if no reliable path turned up.
+- **Shelved, not just deprioritized**: this still requires Backloggd to have an export in the
+  first place, and it doesn't - no CSV/data export ships (see above, on their own roadmap as
+  unshipped). "Manual import" would in practice mean a user hand-typing their own library into a
+  text file one title at a time, which isn't a realistic onboarding flow for anyone with more
+  than a handful of games tracked - the premise "a user exports or copy/pastes their own list"
+  assumed an export existed to copy/paste *from*, which this phase's own research already
+  established isn't true. Phase 8 is shelved until Backloggd ships a real export (or an
+  automated path becomes viable - unlikely given the Bunny Shield blocker above also stands),
+  not scoped down further.
 
 **Phase 9 — Bookshelf margins (profile visualization, done)**
 - Homepage-only margin columns (left: owned/played games, right: wishlist), visible at `xl:` and

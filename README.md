@@ -24,12 +24,14 @@ pasted profile URL, manual "Already played" marking, owned-platforms exclusion) 
 end to end, signed-in or anonymous, in production. **Phase 9** (homepage bookshelf margins -
 owned games/wishlist visualized as book spines) is also done.
 
-**What's actually left** (see "Known issues" near the end for the one live bug worth prioritizing
-over these): the rest of Phase 7 (deferred, not scheduled - no data exists to build it on), Phase
-8 (Backloggd import - researched, manual-paste parser not built), Celery/cron scheduling (sync/
-enrich/backfill scripts still run by hand), a frontend picker UI for `similar_to_game_id` (wired
-on the backend, no way to pick a game from the UI yet), and replacing the bookshelf's placeholder
-book-icon art with real art (deliberately deferred by design, see `Bookshelf.tsx`).
+**What's actually left**: the rest of Phase 7 (deferred, not scheduled - no data exists to build
+it on), Celery/cron scheduling (sync/enrich/backfill scripts still run by hand), a frontend
+picker UI for `similar_to_game_id` (wired on the backend, no way to pick a game from the UI
+yet), and replacing the bookshelf's placeholder book-icon art with real art (deliberately
+deferred by design, see `Bookshelf.tsx`). **Phase 8 (Backloggd import) is shelved**, not just
+unbuilt - see mvp-plan.md Phase 8: the only path left after ruling out automated sync was a
+user-provided export to parse, and Backloggd doesn't ship one, so there's nothing to build
+"manual import" against.
 
 If you're picking this up fresh, read **"Gotchas found the hard way"** below before you start -
 every one of them cost real debugging time once already.
@@ -193,6 +195,13 @@ something's broken.
   propagates, Clerk's JS never loads, so the Sign In button renders but clicking it does
   nothing (no error, no console message pointing at DNS - just silence). If sign-in is inert in
   production, check whether that subdomain resolves before anything else.
+- **Neon silently closes idle pooled connections server-side, with no documented timeout to
+  tune against.** SQLAlchemy's async engine (`backend/app/db.py`) held onto a connection past
+  that point, so the next request to draw it hit `asyncpg.exceptions.InterfaceError: connection
+  is closed` instead of a working query (seen live on `/games/facets` in production). Fixed with
+  `pool_pre_ping=True` on `create_async_engine` - tests each pooled connection before handing it
+  to a request and transparently replaces it if stale, without needing to know Neon's actual
+  timeout (which isn't published anywhere to tune a `pool_recycle` against).
 
 ## What to do first (in order)
 
@@ -243,8 +252,10 @@ context/tuning but isn't what `/recommendations` reads from.
      profile URL), manually mark individual games "Already played", and set which platforms you
      own - all three exclude from future `/recommendations` results the same way.
    **Not yet:** PC specs/emulator support/controller availability (the rest of Phase 7 - no
-   structured data exists for any of them, see mvp-plan.md), Phase 8 (Backloggd import), and
-   Celery/cron scheduling — the sync/match/enrich scripts are meant to be run by hand for now,
+   structured data exists for any of them, see mvp-plan.md) and Celery/cron scheduling — the
+   sync/match/enrich scripts are meant to be run by hand for now, then promoted to a scheduled
+   job once you trust the pipeline. **Shelved:** Phase 8 (Backloggd import) - see mvp-plan.md,
+   the only remaining path needed an export Backloggd doesn't ship.
    then promoted to a scheduled job once you trust the pipeline.
 
 ## Hosted database (ahead of deploy)
@@ -336,17 +347,6 @@ key, or stand up a second environment (staging, a fork, etc.), not as a pending 
 - **Steam OpenID needs no deploy-specific config** - confirmed by reading `app/api/steam-openid/*`:
   the realm/return_to URLs are built from the live request's own origin at runtime, not hardcoded
   or pre-registered with Steam, so it already works against whatever domain the frontend is on.
-
-## Known issues
-
-- **Intermittent 500 on any endpoint that queries `games` - `asyncpg.exceptions.InterfaceError:
-  connection is closed`** (seen live on `/games/facets` in Railway's logs). SQLAlchemy's async
-  engine (`backend/app/db.py`) holds a connection pool with no `pool_pre_ping`/`pool_recycle`
-  set, so a connection Neon has silently closed server-side (idle timeout, scale-to-zero) isn't
-  detected until a request actually tries to use it - that request then 500s instead of the pool
-  transparently reconnecting. Not yet fixed. Likely fix: `create_async_engine(..., pool_pre_ping=True)`
-  in `db.py`, possibly with a `pool_recycle` shorter than Neon's idle timeout - worth confirming
-  Neon's actual timeout rather than guessing a value.
 
 ## Notes on what's deliberately stubbed
 
