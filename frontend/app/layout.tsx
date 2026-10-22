@@ -85,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Aboulomania
               </Link>
               <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" render={<Link href="/info">Info</Link>} />
                 <SignedIn>
                   <Button variant="ghost" size="sm" render={<Link href="/wishlist">Wishlist</Link>} />
                   <Button variant="ghost" size="sm" render={<Link href="/profile">Profile</Link>} />

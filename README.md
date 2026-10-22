@@ -375,3 +375,11 @@ key, or stand up a second environment (staging, a fork, etc.), not as a pending 
   actually running these on a schedule and need retries/monitoring.
 - No `pgvector`/embeddings column — that's a v2 addition per the architecture doc, add it as a
   new Alembic migration when you actually build similarity search.
+
+## Third-party art credits
+
+- `frontend/public/book-flip-sheet.png` — "Pixel Book (Animated)" by Gokhan Solak
+  ([opengameart.org/content/pixel-book-animated](https://opengameart.org/content/pixel-book-animated)),
+  licensed [CC-BY 3.0](http://creativecommons.org/licenses/by/3.0/). Public attribution for this
+  lives in-app at `/info` (linked from the header), not just here — that's what actually satisfies
+  the license on the deployed site.

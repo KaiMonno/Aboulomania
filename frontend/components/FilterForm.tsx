@@ -9,6 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Slider } from "@/components/ui/slider";
+import PlaytimeClockSlider from "@/components/PlaytimeClockSlider";
+import PixelBookFlip from "@/components/PixelBookFlip";
 import { Clock, Scale, Gamepad2, Tags, Users, Sparkles, Bookmark } from "lucide-react";
 import MagicBento from "@/components/MagicBento";
 
@@ -100,6 +102,14 @@ export default function FilterForm({
   // the card it paints includes the heading row above PlatformPicker's own
   // content, not just the tile grid.
   const [hoveredPlatformSlug, setHoveredPlatformSlug] = useState<string | null>(null);
+  // Mirrors hoveredPlatformSlug but never goes back to null - only used for
+  // the <img>'s src below, kept separate from the opacity-driving state so
+  // that src is never removed once a platform's been hovered once. Chrome
+  // (not Firefox/Safari) paints a "broken image" placeholder icon in the
+  // img's top-left corner when a sized-but-src-less <img> briefly exists,
+  // which is exactly what `src={slug ? ... : undefined}` produced on every
+  // mouse-leave - visible during the opacity fade-out before it reached 0.
+  const [lastPlatformSlug, setLastPlatformSlug] = useState<string | null>(null);
 
   const [platforms, setPlatforms] = useState<string[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
@@ -226,27 +236,27 @@ export default function FilterForm({
           </div>
           <div className="space-y-2">
             <div className="flex items-baseline justify-between">
-              <Label htmlFor="targetLengthHours" className="text-muted-foreground">
-                Target length
-              </Label>
+              <Label className="text-muted-foreground">Target length</Label>
               {lengthEnabled && (
                 <span className="text-sm text-muted-foreground">
                   {targetLengthHours >= MAX_LENGTH_HOURS ? `${MAX_LENGTH_HOURS}+ hours` : `${targetLengthHours} hours`}
                 </span>
               )}
             </div>
-            <Slider
-              id="targetLengthHours"
-              disabled={!lengthEnabled}
-              min={MIN_LENGTH_HOURS}
-              max={MAX_LENGTH_HOURS}
-              step={1}
-              value={targetLengthHours}
-              onValueChange={(value) => {
-                setTargetLengthHours(Array.isArray(value) ? value[0] : value);
-                setDirtySinceSave(true);
-              }}
-            />
+            <div className="flex justify-center py-1">
+              <PlaytimeClockSlider
+                aria-label="Target length"
+                disabled={!lengthEnabled}
+                min={MIN_LENGTH_HOURS}
+                max={MAX_LENGTH_HOURS}
+                step={1}
+                value={targetLengthHours}
+                onValueChange={(next) => {
+                  setTargetLengthHours(next);
+                  setDirtySinceSave(true);
+                }}
+              />
+            </div>
           </div>
         </BentoCard>
 
@@ -254,7 +264,7 @@ export default function FilterForm({
           <div className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-2 font-heading text-base font-medium">
               <Scale className="size-4 text-primary" aria-hidden="true" />
-              Story or gameplay?
+              Gameplay or Story
             </span>
             <Switch
               size="sm"
@@ -276,6 +286,9 @@ export default function FilterForm({
                   {storyGameplayUi}/{MAX_STORY_GAMEPLAY_UI}
                 </span>
               )}
+            </div>
+            <div className={cn("flex justify-center py-1", !storyGameplayEnabled && "opacity-50")}>
+              <PixelBookFlip tick={storyGameplayUi} />
             </div>
             <Slider
               id="targetStoryGameplayRatio"
@@ -309,7 +322,7 @@ export default function FilterForm({
                 coming later. */}
             {/* eslint-disable-next-line @next/next/no-img-element -- local dithered photo, no next/image config needed */}
             <img
-              src={hoveredPlatformSlug ? `/platforms/${hoveredPlatformSlug}.png` : undefined}
+              src={lastPlatformSlug ? `/platforms/${lastPlatformSlug}.png` : undefined}
               alt=""
               aria-hidden="true"
               className={cn(
@@ -359,7 +372,10 @@ export default function FilterForm({
             }}
             showAll={showAllPlatforms}
             onToggleShowAll={() => setShowAllPlatforms((prev) => !prev)}
-            onHoverSlugChange={setHoveredPlatformSlug}
+            onHoverSlugChange={(slug) => {
+              setHoveredPlatformSlug(slug);
+              if (slug) setLastPlatformSlug(slug);
+            }}
           />
         ) : (
           <p className="text-sm text-muted-foreground">Loading platforms...</p>
