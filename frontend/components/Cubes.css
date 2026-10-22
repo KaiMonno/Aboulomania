@@ -1,0 +1,19 @@
+/* Not shipped by reactbits' pasted snippet - written to match what the
+   component needs: cubes-canvas filling whatever cubes-container is (the
+   component measures container.clientWidth/clientHeight itself via
+   ResizeObserver, not any CSS size convention). Deliberately NOT setting
+   position/width/height on .cubes-container itself - layout.tsx positions
+   it via Tailwind utilities on the className prop ("fixed inset-0"), and a
+   hardcoded `position: relative` here previously won the cascade over
+   Tailwind's `.fixed` (same specificity, loaded later in the bundle),
+   silently turning the full-viewport background into an in-flow block that
+   pushed the rest of the page down. */
+.cubes-container {
+  overflow: hidden;
+}
+
+.cubes-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

@@ -1,0 +1,336 @@
+/* Trimmed from reactbits.dev's MagicBento for this project - see the
+   comment at the top of MagicBento.jsx. Everything here is the core
+   chrome (grid, intro stagger, 3D tilt transform, spotlight, border glow +
+   click wave, content padding, title/description autohide) which this
+   project uses; the demo-visual-specific rules (chart/bars/collab doc/
+   automation flow/integration hub/security shield, all for content this
+   project doesn't render) are dropped. */
+
+.magic-bento {
+  --mb-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-auto-flow: row dense;
+  width: 100%;
+  color: var(--mb-ink);
+  font-feature-settings: 'tnum' 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@supports (transition-timing-function: linear(0, 1)) {
+  .magic-bento {
+    --mb-spring: linear(
+      0,
+      0.0603,
+      0.2033,
+      0.3821,
+      0.5633,
+      0.7258,
+      0.8584,
+      0.9574,
+      1.0242,
+      1.0634,
+      1.0809,
+      1.0828,
+      1.0747,
+      1.0613,
+      1.046,
+      1.0313,
+      1.0186,
+      1.0085,
+      1.0012,
+      0.9965,
+      0.994,
+      0.9931,
+      0.9933,
+      0.9941,
+      0.9953,
+      0.9966,
+      0.9978,
+      0.9988,
+      1
+    );
+  }
+}
+
+.magic-bento__cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  --mb-delay: 0ms;
+}
+
+.magic-bento[data-intro] .magic-bento__cell {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0) scale(0.97);
+}
+
+.magic-bento[data-intro] .magic-bento__cell[data-state='in'] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 420ms cubic-bezier(0.22, 1, 0.36, 1) var(--mb-delay),
+    transform 760ms var(--mb-spring) var(--mb-delay);
+}
+
+.magic-bento__card {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--mb-radius);
+  background: var(--mb-surface);
+  box-shadow: var(--mb-shadow);
+  color: var(--mb-ink);
+  text-decoration: none;
+  isolation: isolate;
+  outline: none;
+  transform: perspective(900px) translate3d(var(--mb-tx, 0px), var(--mb-ty, 0px), 0) rotateX(var(--mb-rx, 0deg))
+    rotateY(var(--mb-ry, 0deg)) scale(var(--mb-press, 1));
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.magic-bento__card[data-clickable] {
+  cursor: pointer;
+}
+
+.magic-bento__card:focus-visible {
+  box-shadow:
+    var(--mb-shadow),
+    0 0 0 2px var(--mb-focus);
+}
+
+.magic-bento__image {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.magic-bento__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    to top,
+    rgba(10, 9, 13, 0.82) 0%,
+    rgba(10, 9, 13, 0.7) 14%,
+    rgba(10, 9, 13, 0.46) 30%,
+    rgba(10, 9, 13, 0.2) 46%,
+    rgba(10, 9, 13, 0.05) 60%,
+    rgba(10, 9, 13, 0) 72%
+  );
+  pointer-events: none;
+}
+
+.magic-bento__light {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: radial-gradient(
+    var(--mb-spot-size) circle at var(--mb-x, -999px) var(--mb-y, -999px),
+    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 1)) 0%,
+    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.973)) 15%,
+    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.837)) 30%,
+    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.593)) 45%,
+    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.317)) 60%,
+    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.104)) 75%,
+    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.009)) 90%,
+    rgba(var(--mb-glow-rgb), 0) 100%
+  );
+  pointer-events: none;
+}
+
+.magic-bento__stars {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.magic-bento__rim {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px var(--mb-edge),
+    inset 0 1px 0 var(--mb-highlight);
+  pointer-events: none;
+}
+
+.magic-bento__border {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  box-sizing: border-box;
+  padding: 1px;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      var(--mb-border-size) circle at var(--mb-x, -999px) var(--mb-y, -999px),
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 1)) 0%,
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.973)) 15%,
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.837)) 30%,
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.593)) 45%,
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.317)) 60%,
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.104)) 75%,
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.009)) 90%,
+      rgba(var(--mb-glow-rgb), 0) 100%
+    ),
+    radial-gradient(
+      circle at var(--mb-wx, -999px) var(--mb-wy, -999px),
+      rgba(var(--mb-glow-rgb), 0) calc(var(--mb-wr, 0px) - 110px),
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0) * 0.1)) calc(var(--mb-wr, 0px) - 80px),
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0) * 0.32)) calc(var(--mb-wr, 0px) - 52px),
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0) * 0.68)) calc(var(--mb-wr, 0px) - 28px),
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0) * 0.94)) calc(var(--mb-wr, 0px) - 10px),
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0))) calc(var(--mb-wr, 0px) - 3px),
+      rgba(var(--mb-glow-rgb), 0) var(--mb-wr, 0px)
+    );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+.magic-bento__content {
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  padding: var(--mb-pad);
+}
+
+.magic-bento__header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  color: var(--mb-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.magic-bento__icon {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  place-items: center;
+  color: var(--mb-ink);
+}
+
+.magic-bento__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.magic-bento__visual {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  container-type: size;
+}
+
+.magic-bento__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: auto;
+}
+
+.magic-bento__title {
+  margin: 0;
+  color: var(--mb-ink);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 20px;
+}
+
+.magic-bento__description {
+  margin: 0;
+  color: var(--mb-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.magic-bento[data-autohide] .magic-bento__title,
+.magic-bento[data-autohide] .magic-bento__description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+}
+
+.magic-bento[data-autohide] .magic-bento__title {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.magic-bento[data-autohide] .magic-bento__description {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.magic-bento__card[data-image] .magic-bento__header,
+.magic-bento__card[data-image] .magic-bento__description {
+  color: rgba(244, 244, 245, 0.72);
+}
+
+.magic-bento__card[data-image] .magic-bento__title,
+.magic-bento__card[data-image] .magic-bento__icon {
+  color: #f4f4f5;
+}
+
+.magic-bento__well {
+  position: relative;
+  box-sizing: border-box;
+  border-radius: var(--mb-inner-radius);
+  background: var(--mb-well);
+  box-shadow: inset 0 0 0 1px var(--mb-well-edge);
+}
+
+.magic-bento__tile {
+  position: relative;
+  box-sizing: border-box;
+  border-radius: var(--mb-inner-radius);
+  background: var(--mb-tile);
+  box-shadow: var(--mb-tile-shadow);
+}
+
+.magic-bento__tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px var(--mb-tile-edge),
+    inset 0 1px 0 var(--mb-tile-highlight);
+  pointer-events: none;
+}

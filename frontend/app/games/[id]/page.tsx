@@ -6,7 +6,6 @@ import { ArrowLeft, BookOpen } from "lucide-react";
 import { getGame, type GameOut, type RecommendationResult } from "@/lib/api";
 import { getCachedResult } from "@/lib/resultsCache";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SaveButton, PlayedButton } from "@/components/GameActions";
 
 // Same decorative cover-color cycle as ResultsList - keyed by game id here
@@ -119,15 +118,6 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
           )}
         </div>
       </div>
-
-      {!result && (
-        <Alert className="mt-6">
-          <AlertDescription>
-            No match info for this game outside of a search - run a new search to see why it was (or wasn&apos;t)
-            recommended.
-          </AlertDescription>
-        </Alert>
-      )}
 
       <div className="mt-6 space-y-4">
         {game.summary && <p className="text-sm text-muted-foreground">{game.summary}</p>}

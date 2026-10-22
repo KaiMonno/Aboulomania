@@ -203,6 +203,25 @@ something's broken.
   `pool_pre_ping=True` on `create_async_engine` - tests each pooled connection before handing it
   to a request and transparently replaces it if stale, without needing to know Neon's actual
   timeout (which isn't published anywhere to tune a `pool_recycle` against).
+- **The frontend's visual-effect components (`Cubes`, `FuzzyText`, `MagicBento`, `ReflectiveCard`
+  in `frontend/components/`) are vendored as plain `.jsx`, trimmed from their original
+  reactbits.dev source to drop demo-only content and an unused `@hugeicons/react` dependency.**
+  A few non-obvious things about them:
+  - They're outside `tsconfig.json`'s `include` glob, so `tsc` never type-checks the `.jsx` files
+    directly - but TypeScript still *infers* prop types from their untyped JS when a `.tsx` file
+    imports them (e.g. a prop with no default infers as required, a `[]` default infers as
+    `never[]`). `MagicBento.d.ts`/`ReflectiveCard.d.ts` exist specifically to override that
+    inference with real types; if you add a prop to the `.jsx`, update the matching `.d.ts` too.
+  - None of them can parse this project's `oklch(...)` theme colors directly (`glowColor`,
+    `tint`, etc. expect hex/rgb) - `getComputedStyle` silently hands back the color unconverted
+    rather than converting it, which is a dead end. Convert empirically instead: a 1×1 canvas,
+    `ctx.fillStyle = oklchString`, then read it back with `getImageData` - this is how the
+    `--primary`/`--accent` hex values hardcoded at each call site were derived.
+  - `ReflectiveCard` opens its own full WebGL2 context per instance. Measured directly (not
+    assumed) in Chromium: the browser caps simultaneous WebGL2 contexts at **16** - past that,
+    the oldest instance silently loses its context (`webglcontextlost`, no crash, that card's
+    effect just stops rendering and falls back to a flat background). Matters most for the
+    wishlist grid specifically, since it's the one place these cards aren't capped at 5.
 
 ## What to do first (in order)
 

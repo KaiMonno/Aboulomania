@@ -78,26 +78,33 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="font-heading text-2xl font-semibold tracking-tight">Aboulomania</h1>
-      <p className="mt-1 text-muted-foreground">Tell us what you want, we&apos;ll find the game.</p>
+    <main className="mx-auto max-w-6xl px-4 py-12">
+      {/* The filter form stays in a narrow reading-width column - only the
+          results grid below needs the wider container, to fit 5 result
+          cards in one row at a comfortable size instead of wrapping to 3. */}
+      <div className="mx-auto max-w-2xl">
+        <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
+          What do you feel like playing?
+        </h1>
+        <p className="mt-2 text-muted-foreground">Set a few dials below, or leave them all off to see anything.</p>
 
-      <div className="mt-8">
-        <FilterForm
-          onSubmit={handleSubmit}
-          loading={loading}
-          initialHardFilters={initialHardFilters}
-          initialSoftPreferences={initialSoftPreferences}
-          onSaveDefaults={isSignedIn ? handleSaveDefaults : undefined}
-          saveDefaultsState={saveDefaultsState}
-        />
+        <div className="mt-8">
+          <FilterForm
+            onSubmit={handleSubmit}
+            loading={loading}
+            initialHardFilters={initialHardFilters}
+            initialSoftPreferences={initialSoftPreferences}
+            onSaveDefaults={isSignedIn ? handleSaveDefaults : undefined}
+            saveDefaultsState={saveDefaultsState}
+          />
+        </div>
+
+        {error && (
+          <Alert variant="destructive" className="mt-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
       </div>
-
-      {error && (
-        <Alert variant="destructive" className="mt-6">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       <div className="mt-8">
         <ResultsList results={results} />

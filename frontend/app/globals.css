@@ -99,86 +99,47 @@
   --spine-1..5 are a separate, decorative-only palette (book-cover colors
   cycled per result card in ResultsList.tsx) - deliberately not reused for
   any semantic token above, so a result card's accent color never implies
-  state/meaning the way bg-primary or bg-destructive do. spine-1/2/5 were
-  retuned to the logo's actual purple/blue-violet/shadow-pink pixels too;
-  spine-3/4 (blue-violet, warm gold) were already close enough, or add
-  deliberate warm contrast against an otherwise all-purple shelf, so they
-  were left alone rather than forced to match.
+  state/meaning the way bg-primary or bg-destructive do.
+
+  Dark-only now: this used to be a `:root`/`.dark` pair toggled by
+  next-themes, but the dark palette is the only one these components (the
+  WebGL Cubes background especially - see layout.tsx) were ever designed
+  against, and the light variant looked wrong with that background
+  present. The dark values are now just the unconditional tokens; there is
+  no light palette and no toggle. --muted-foreground is bumped lighter
+  than the original dark value (0.68 -> 0.8) - most of the app's secondary
+  text (hints, descriptions, labels) uses it, and sitting directly on the
+  Cubes background instead of a plain flat color, the old value didn't
+  contrast enough to read comfortably.
 */
 @layer base {
   :root {
-    /* Was a separate `.theme { }` class selector - never actually applied
-       to any element (checked layout.tsx: <html> only ever gets
-       "font-sans"/font-variable classes), so --font-heading's real value
-       was never active anywhere and every font-heading usage silently
-       fell back to font-sans - the exact bug the comment above this block
-       describes as already fixed once, recurring via a different cause.
-       Fonts don't change between light/dark, so :root (unconditional,
-       same as every other token here) is correct, not a .dark variant. */
     --font-heading: var(--font-serif);
-    --background: oklch(0.97 0.012 316);
-    --foreground: oklch(0.22 0.04 316);
-    --card: oklch(0.99 0.008 316);
-    --card-foreground: oklch(0.22 0.04 316);
-    --popover: oklch(0.99 0.008 316);
-    --popover-foreground: oklch(0.22 0.04 316);
-    --primary: oklch(0.472 0.125 316);
+    --background: oklch(0.1 0.025 316);
+    --foreground: oklch(0.95 0.015 316);
+    --card: oklch(0.15 0.035 316);
+    --card-foreground: oklch(0.95 0.015 316);
+    --popover: oklch(0.15 0.035 316);
+    --popover-foreground: oklch(0.95 0.015 316);
+    --primary: oklch(0.64 0.18 316);
     --primary-foreground: oklch(0.98 0.01 316);
-    --secondary: oklch(0.88 0.035 316);
-    --secondary-foreground: oklch(0.28 0.03 316);
-    --muted: oklch(0.93 0.018 316);
-    --muted-foreground: oklch(0.46 0.03 316);
-    --accent: oklch(0.68 0.14 273);
-    --accent-foreground: oklch(0.2 0.03 273);
-    --destructive: oklch(0.55 0.21 25);
-    --border: oklch(0.85 0.03 316);
-    --input: oklch(0.88 0.025 316);
-    --ring: oklch(0.6 0.13 316);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.5rem;
-    --spine-1: oklch(0.472 0.125 316);
-    --spine-2: oklch(0.583 0.175 273);
-    --spine-3: oklch(0.38 0.1 265);
-    --spine-4: oklch(0.68 0.12 80);
-    --spine-5: oklch(0.55 0.1 339);
-    --sidebar: oklch(0.985 0.005 316);
-    --sidebar-foreground: oklch(0.22 0.04 316);
-    --sidebar-primary: oklch(0.472 0.125 316);
-    --sidebar-primary-foreground: oklch(0.98 0.01 316);
-    --sidebar-accent: oklch(0.93 0.018 316);
-    --sidebar-accent-foreground: oklch(0.22 0.04 316);
-    --sidebar-border: oklch(0.88 0.025 316);
-    --sidebar-ring: oklch(0.6 0.13 316)
-  }
-  .dark {
-    --background: oklch(0.16 0.035 316);
-    --foreground: oklch(0.93 0.02 316);
-    --card: oklch(0.21 0.045 316);
-    --card-foreground: oklch(0.93 0.02 316);
-    --popover: oklch(0.21 0.045 316);
-    --popover-foreground: oklch(0.93 0.02 316);
-    --primary: oklch(0.6 0.15 316);
-    --primary-foreground: oklch(0.98 0.01 316);
-    --secondary: oklch(0.3 0.05 316);
-    --secondary-foreground: oklch(0.92 0.02 316);
-    --muted: oklch(0.26 0.04 316);
-    --muted-foreground: oklch(0.68 0.03 316);
-    --accent: oklch(0.65 0.16 273);
+    --secondary: oklch(0.21 0.045 316);
+    --secondary-foreground: oklch(0.93 0.02 316);
+    --muted: oklch(0.19 0.035 316);
+    --muted-foreground: oklch(0.8 0.02 316);
+    --accent: oklch(0.68 0.17 273);
     --accent-foreground: oklch(0.15 0.03 273);
     --destructive: oklch(0.62 0.2 25);
-    --border: oklch(1 0 0 / 14%);
-    --input: oklch(1 0 0 / 18%);
-    --ring: oklch(0.62 0.15 316);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 14%);
+    --ring: oklch(0.64 0.17 316);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
-    --spine-1: oklch(0.6 0.15 316);
+    --radius: 0.75rem;
+    --spine-1: oklch(0.64 0.18 316);
     --spine-2: oklch(0.62 0.18 273);
     --spine-3: oklch(0.5 0.12 265);
     --spine-4: oklch(0.72 0.13 80);
@@ -201,4 +162,13 @@
   html {
     @apply font-sans;
   }
+}
+
+/* CRT-style scanlines + vignette, layered over a platform's photo
+   background (PlatformPicker's whole-card hover reveal) so it reads as
+   stylized retro-monitor art rather than a plain dim photo. */
+.crt-overlay {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0px, rgba(0, 0, 0, 0.35) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at center, transparent 35%, rgba(0, 0, 0, 0.6) 100%);
 }

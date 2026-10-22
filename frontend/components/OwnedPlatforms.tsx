@@ -7,6 +7,7 @@ import PlatformPicker, { PRIMARY_PLATFORMS } from "@/components/PlatformPicker";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 /** Phase 7: platforms/consoles the user actually owns - a persistent,
  * always-on exclusion applied to every search (see backend
@@ -24,6 +25,7 @@ export default function OwnedPlatforms() {
   const [showAll, setShowAll] = useState(false);
   const [state, setState] = useState<"loading" | "idle" | "saving" | "saved" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
+  const [hoveredPlatformSlug, setHoveredPlatformSlug] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -68,7 +70,32 @@ export default function OwnedPlatforms() {
   }
 
   return (
-    <Card>
+    <Card className="relative overflow-hidden">
+      {/* eslint-disable-next-line @next/next/no-img-element -- local dithered photo, no next/image config needed */}
+      <img
+        src={hoveredPlatformSlug ? `/platforms/${hoveredPlatformSlug}.png` : undefined}
+        alt=""
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
+          hoveredPlatformSlug ? "opacity-100" : "opacity-0"
+        )}
+      />
+      <div
+        className={cn(
+          "crt-overlay pointer-events-none absolute inset-0 transition-opacity duration-300",
+          hoveredPlatformSlug ? "opacity-100" : "opacity-0"
+        )}
+        aria-hidden="true"
+      />
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 bg-card/80 transition-opacity duration-300",
+          hoveredPlatformSlug ? "opacity-100" : "opacity-0"
+        )}
+        aria-hidden="true"
+      />
+
       <CardHeader>
         <CardTitle>Platforms you own</CardTitle>
         <CardDescription>
@@ -86,6 +113,7 @@ export default function OwnedPlatforms() {
             onChange={handleChange}
             showAll={showAll}
             onToggleShowAll={() => setShowAll((prev) => !prev)}
+            onHoverSlugChange={setHoveredPlatformSlug}
           />
         )}
         {state === "error" && error && (

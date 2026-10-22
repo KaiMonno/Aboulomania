@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { BookOpen } from "lucide-react";
 import type { RecommendationResult } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
+import ReflectiveCard from "@/components/ReflectiveCard";
 
 // Decorative-only "book cover" colors cycled per result, independent of
 // the semantic theme tokens - same palette the detail page's fallback
@@ -31,36 +33,63 @@ function FallbackCover({ name, spineVar }: { name: string; spineVar: string }) {
 
 export default function ResultsList({ results }: { results: RecommendationResult[] }) {
   if (results.length === 0) {
-    return <p className="text-sm text-muted-foreground">No results yet — submit the form above.</p>;
+    return null;
   }
 
   return (
-    <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+    <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
       {results.map((r, index) => {
         const spineVar = `var(${SPINE_COLORS[index % SPINE_COLORS.length]})`;
         return (
           <li key={r.game.id}>
-            <Link
-              href={`/games/${r.game.id}`}
-              className="group block overflow-hidden rounded-lg border bg-card transition-shadow hover:shadow-md"
-            >
-              <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-                {r.game.cover_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- external IGDB CDN image, no next/image remote-pattern config needed for a plain <img>
-                  <img
-                    src={r.game.cover_url}
-                    alt={r.game.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                  />
-                ) : (
-                  <FallbackCover name={r.game.name} spineVar={spineVar} />
-                )}
-                <Badge variant={matchBadgeVariant(r.match_score)} className="absolute right-1.5 top-1.5 shadow">
-                  {r.match_score}%
-                </Badge>
+            <Link href={`/games/${r.game.id}`} className="block">
+              {/* aspect-[3/4] on a plain wrapper, not ReflectiveCard itself -
+                  the component needs an explicit width/height (not an
+                  intrinsic aspect-ratio), so it's given width="100%"
+                  height="100%" of this already-sized box instead. The title
+                  lives outside the card (not as a child) so the card's own
+                  padded interior is dedicated entirely to cover art instead
+                  of splitting it with a text row. */}
+              <div className="aspect-[3/4]">
+                <ReflectiveCard
+                  width="100%"
+                  height="100%"
+                  radius={16}
+                  tint="#ffffff"
+                  metalness={1}
+                  roughness={0.3}
+                  blurStrength={6}
+                  shine={1}
+                  glare={0.5}
+                  grayscale={1}
+                  warp={0.6}
+                  warpScale={1}
+                  bevel={3}
+                  tiltStrength={10}
+                  enableTilt
+                  intro
+                  className="h-full w-full"
+                  style={{ "--rc-pad": "6px" } as CSSProperties}
+                >
+                  <div className="relative h-full w-full overflow-hidden rounded-lg bg-muted">
+                    {r.game.cover_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- external IGDB CDN image, no next/image remote-pattern config needed for a plain <img>
+                      <img
+                        src={r.game.cover_url}
+                        alt={r.game.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <FallbackCover name={r.game.name} spineVar={spineVar} />
+                    )}
+                    <Badge variant={matchBadgeVariant(r.match_score)} className="absolute right-1.5 top-1.5 shadow">
+                      {r.match_score}%
+                    </Badge>
+                  </div>
+                </ReflectiveCard>
               </div>
-              <p className="line-clamp-3 p-2 text-sm font-medium">{r.game.name}</p>
+              <p className="line-clamp-2 pt-2 text-sm font-medium">{r.game.name}</p>
             </Link>
           </li>
         );
