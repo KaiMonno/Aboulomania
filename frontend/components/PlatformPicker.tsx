@@ -2,7 +2,22 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import FuzzyText from "@/components/FuzzyText";
+import ShinyText from "@/components/ShinyText";
+
+// ShinyText clips the glyphs to a CSS gradient (-webkit-text-fill-color:
+// transparent), so unlike FuzzyText (a canvas effect that could just read
+// currentColor off the button via getComputedStyle), it needs each state's
+// real color as a hex string up front - passing color="currentColor" would
+// silently fail (canvas 2D's fillStyle setter doesn't resolve that CSS
+// keyword with no element to inherit from) and render black. These are
+// --foreground/--primary/--primary-foreground/--destructive from
+// globals.css, converted via the same canvas fillStyle/getImageData
+// technique already used for MagicBento's glowColor and ReflectiveCard's
+// tint, not estimated.
+const TEXT_FOREGROUND = "#f2ecf5";
+const TEXT_PRIMARY = "#b563d4";
+const TEXT_PRIMARY_FOREGROUND = "#fbf6fd";
+const TEXT_DESTRUCTIVE = "#e64343";
 
 // Shown by default - current-gen consoles + Switch + the PC ecosystem, plus
 // a run of older consoles that have pixel-art badges (see PLATFORM_ART_SLUG
@@ -58,7 +73,7 @@ function toggle(list: string[], value: string): string[] {
 }
 
 // Every platform (primary or secondary/niche) renders as the same selector
-// - no per-tile icon or art, just a label rendered through FuzzyText (same
+// - no per-tile icon or art, just a label rendered through ShinyText (same
 // treatment as GenreToggleGroup's labels below). A primary platform's real
 // pixel-art photo instead shows up centered behind the whole "Where will
 // you play?" card while this tile is hovered/focused (see PlatformPicker's
@@ -97,17 +112,9 @@ function PlatformCard({
           : "border-input text-foreground hover:scale-105 hover:border-primary hover:bg-primary/35 hover:text-primary hover:shadow-lg hover:shadow-primary/30 focus-visible:scale-105 focus-visible:border-primary focus-visible:bg-primary/35 focus-visible:text-primary"
       )}
     >
-      <FuzzyText
-        fontSize="14px"
-        fontWeight={500}
-        fuzzRange={4}
-        baseIntensity={0.5}
-        hoverIntensity={1.4}
-        trigger="hover"
-        intro={false}
-      >
+      <ShinyText color={active ? TEXT_PRIMARY : TEXT_FOREGROUND} shineColor="#ffffff" glow={0.85} shineWidth={57} trigger="hover">
         {label}
-      </FuzzyText>
+      </ShinyText>
     </button>
   );
 }
@@ -115,10 +122,14 @@ function PlatformCard({
 // 3-state cycle (neutral -> include -> exclude -> neutral), back to the
 // original plain pill (the bookmark-shaped reskin didn't land well) - the
 // only change from that original is the label itself rendering through
-// FuzzyText (reactbits.dev "Fuzzy Text") instead of as plain text, for a
-// glitchy hover effect. color="currentColor" (FuzzyText's default) is what
-// makes it pick up the exact text color each state below already sets via
-// Tailwind, via getComputedStyle - no change needed there.
+// ShinyText (reactbits.dev "Shiny Text") instead of as plain text, for a
+// hover sheen. Unlike the FuzzyText this replaced, ShinyText can't just
+// inherit whatever color Tailwind set on the button (see the TEXT_* consts
+// above), so each state's color is passed explicitly, matching what the
+// className below sets for that same state. The `line-through` on the
+// excluded state still renders correctly in --destructive even though the
+// glyph fill itself is transparent underneath - text-decoration color comes
+// from the button's own `color`, not the inner span's overridden fill.
 export function GenreToggleGroup({
   options,
   included,
@@ -166,17 +177,15 @@ export function GenreToggleGroup({
                 "border-input bg-card/70 text-foreground hover:scale-105 hover:border-primary hover:bg-muted"
             )}
           >
-            <FuzzyText
-              fontSize="14px"
-              fontWeight={500}
-              fuzzRange={4}
-              baseIntensity={0.5}
-              hoverIntensity={1.4}
+            <ShinyText
+              color={isIncluded ? TEXT_PRIMARY_FOREGROUND : isExcluded ? TEXT_DESTRUCTIVE : TEXT_FOREGROUND}
+              shineColor="#ffffff"
+              glow={0.85}
+              shineWidth={57}
               trigger="hover"
-              intro={false}
             >
               {(isIncluded ? "+ " : isExcluded ? "− " : "") + option}
-            </FuzzyText>
+            </ShinyText>
           </button>
         );
       })}
