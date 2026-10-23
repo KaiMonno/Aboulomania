@@ -83,7 +83,7 @@ export default function Home() {
           results grid below needs the wider container, to fit 5 result
           cards in one row at a comfortable size instead of wrapping to 3. */}
       <div className="mx-auto max-w-2xl">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="font-heading text-3xl tracking-tight sm:text-4xl">
           What do you feel like playing?
         </h1>
         <p className="mt-2 text-muted-foreground">Set a few dials below, or leave them all off to see anything.</p>

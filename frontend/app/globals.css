@@ -23,6 +23,7 @@
      real bug once that changed to a distinct serif font that then never
      actually applied anywhere. */
   --font-heading: var(--font-heading);
+  --font-sans: var(--font-pixel);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -92,14 +93,20 @@
   component already consumes (bg-primary, bg-card, border-border, ...), so
   retheming these two blocks restyles the whole app without touching
   individual component files. --font-heading switches every CardTitle
-  (FilterForm, each result, Steam/platforms cards, ...) to the serif
-  display font in one place - see layout.tsx for where --font-serif itself
-  is defined.
+  (FilterForm, each result, Steam/platforms cards, ...) to the pixel-art
+  display font in one place - see the --font-sans/--font-heading note
+  further down and layout.tsx for where --font-pixel itself is defined.
 
   --spine-1..5 are a separate, decorative-only palette (book-cover colors
   cycled per result card in ResultsList.tsx) - deliberately not reused for
   any semantic token above, so a result card's accent color never implies
   state/meaning the way bg-primary or bg-destructive do.
+
+  --font-sans and --font-heading both resolve to --font-pixel (BoldPixels,
+  defined in layout.tsx) - the whole app uses one pixel-art display font
+  now rather than splitting UI text from headings across two faces. Kept
+  as two separate tokens (not collapsed into one) so a future "actually
+  this needs a different font for X" only has to repoint one of them.
 
   Dark-only now: this used to be a `:root`/`.dark` pair toggled by
   next-themes, but the dark palette is the only one these components (the
@@ -114,7 +121,7 @@
 */
 @layer base {
   :root {
-    --font-heading: var(--font-serif);
+    --font-heading: var(--font-pixel);
     --background: oklch(0.1 0.025 316);
     --foreground: oklch(0.95 0.015 316);
     --card: oklch(0.15 0.035 316);

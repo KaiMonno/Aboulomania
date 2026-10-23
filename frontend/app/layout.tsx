@@ -1,25 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Fraunces } from "next/font/google";
+import localFont from "next/font/local";
 import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import "./globals.css";
-import { GeistSans } from "geist/font/sans";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import BookshelfMargins from "@/components/BookshelfMargins";
 import { BookshelfProvider } from "@/lib/bookshelf-context";
 import Cubes from "@/components/Cubes";
 
-// Serif display face for the "reading room" theme - used only for headings
-// (--font-heading, see globals.css), body/UI text stays on GeistSans for
-// readability. Fraunces has a warm, literary old-style personality without
-// tipping into a novelty/script font that would hurt legibility at small
-// sizes (card titles, nav).
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
+// BoldPixels by Yuki Pixels (1001fonts.com, FFC license - free for
+// commercial use, no attribution required). Used for every text in the
+// app (--font-sans AND --font-heading, see globals.css) - checked
+// empirically first (a rendered size grid from 36px down to 12px, a full
+// paragraph at 13-14px, and an O0/Il1/S5/B8/Z2/G6 ambiguous-character
+// sample) and it stayed legible at every size actually used in the app,
+// unlike an earlier ASCII-art text effect this project tried and fully
+// reverted for being illegible at UI scale. Replaces the previous
+// Fraunces/GeistSans split - Fraunces is gone, and GeistSans turned out to
+// already be dead weight (its .variable was applied but nothing actually
+// referenced --font-geist-sans, so body text was silently rendering the
+// browser's default system-ui stack the whole time).
+const boldPixels = localFont({
+  src: "./fonts/BoldPixels.ttf",
+  variable: "--font-pixel",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -30,7 +35,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en" className={cn("font-sans", GeistSans.variable, fraunces.variable)}>
+      <html lang="en" className={cn("font-sans", boldPixels.variable)}>
         <body className="bg-background text-foreground">
           {/* Whole-app WebGL background. Needs an explicit negative z-index
               here, not just DOM order - unlike PlatformPicker's hover art
