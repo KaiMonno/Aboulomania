@@ -162,6 +162,19 @@ class TitleResolutionReport:
 #   just the date: id 3273's description matches the real game's plot
 #   (Sisters/Brothers/Color) - a same-named id with no release date at all
 #   has a vague, generic-sounding summary that doesn't.
+# - "Disney's Goof Troop (1993)": the year hint alone doesn't disambiguate
+#   this one - IGDB has two same-named 1993 releases (id 8163, the real
+#   SNES/Super Famicom game, and id 205930, an unrelated "Handheld
+#   Electronic LCD" game dated 1993-12-31), so classify_match's year-match
+#   count comes back as 2, not the required 1, and it stays ambiguous.
+# - "Gun (2005)": same short/common-title problem as "OFF" - neither
+#   search_games("Gun") nor find_by_contains("Gun") surfaces it at all (the
+#   real game's id, confirmed via `where slug = "gun"`, never appears in
+#   either pool's results, crowded out by other "Gun*"/"*Gun*"-named games).
+#   id 3939 confirmed by slug ("gun") and summary ("realistic epic
+#   action/adventure... brutality of the..." - matches the 2005
+#   Neversoft/Activision western, not any of the unrelated same-ish-named
+#   games search did return).
 MANUAL_TITLE_OVERRIDES: dict[str, int] = {
     "Resident Evil (1996)": 424,
     "Resident Evil 2 (1998)": 880,
@@ -170,6 +183,8 @@ MANUAL_TITLE_OVERRIDES: dict[str, int] = {
     "Ketsui: Kizuna Jigoku-tachi (2003)": 7035,
     "OFF (2008)": 24930,
     "The Void (2008)": 3273,
+    "Gun (2005)": 3939,
+    "Disney's Goof Troop (1993)": 8163,
 }
 
 

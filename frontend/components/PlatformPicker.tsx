@@ -31,7 +31,6 @@ export const PRIMARY_PLATFORMS = [
   "Nintendo 64",
   "Nintendo GameCube",
   "Wii",
-  "Super Nintendo Entertainment System",
 ];
 
 // Maps a primary platform's exact IGDB name to its pixel-art badge at
@@ -52,7 +51,6 @@ const PLATFORM_ART_SLUG: Record<string, string> = {
   "Nintendo 64": "n64",
   "Nintendo GameCube": "gamecube",
   Wii: "wii",
-  "Super Nintendo Entertainment System": "snes",
 };
 
 function toggle(list: string[], value: string): string[] {
