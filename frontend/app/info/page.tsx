@@ -40,7 +40,7 @@ export default function InfoPage() {
           <CardHeader>
             <CardTitle className="text-lg">Credits</CardTitle>
           </CardHeader>
-          <CardContent className="text-muted-foreground">
+          <CardContent className="space-y-3 text-muted-foreground">
             <p>
               Book flip animation: &ldquo;Pixel Book (Animated)&rdquo; by Gokhan Solak, sourced from{" "}
               <a
@@ -62,6 +62,7 @@ export default function InfoPage() {
               </a>
               .
             </p>
+            <p>Library bookshelf art: &ldquo;Tiny Library Assets&rdquo; by Blubrry.</p>
           </CardContent>
         </Card>
       </div>

@@ -383,3 +383,7 @@ key, or stand up a second environment (staging, a fork, etc.), not as a pending 
   licensed [CC-BY 3.0](http://creativecommons.org/licenses/by/3.0/). Public attribution for this
   lives in-app at `/info` (linked from the header), not just here — that's what actually satisfies
   the license on the deployed site.
+- `frontend/public/library/book-*.png` — "Tiny Library Assets" by Blubrry, sliced from a
+  `TinyLibraryAssets.png` sheet provided directly (no source URL or license terms given alongside
+  it) — credited by name at `/info` on that basis. Get the actual license from Blubrry before
+  relying on this for the live app the way the CC-BY-licensed book-flip art above already does.
