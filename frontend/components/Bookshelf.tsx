@@ -129,7 +129,7 @@ export default function Bookshelf({ items, side, label, highlightGameId }: Books
           hover art below - deliberately wider than its own spine and
           popping out over neighbors - was enough to trigger a horizontal
           scrollbar on an otherwise vertical-only shelf. */}
-      <div className="max-h-[calc(100vh-7rem)] overflow-x-hidden overflow-y-auto" style={{ width: FRAME_WIDTH }}>
+      <div className="scrollbar-hide max-h-[calc(100vh-7rem)] overflow-x-hidden overflow-y-auto" style={{ width: FRAME_WIDTH }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- local pixel art, no next/image config needed */}
         <img
           src="/library/shelf-cap.png"

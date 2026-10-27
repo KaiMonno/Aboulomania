@@ -168,7 +168,29 @@
   }
   html {
     @apply font-sans;
+    /* Every Tailwind text- and spacing- utility is rem-based, so bumping
+       the root size (browser default 16px) scales all of it at once -
+       text-sm labels, card padding, pill sizing, everything - instead of
+       hand-editing dozens of individual text-* classes across the app.
+       Doesn't affect the Bookshelf frame or pixel-art badges, which are
+       sized in hardcoded px, not rem. */
+    font-size: 18px;
   }
+}
+
+/* Keeps a scrollable element's own scroll behavior (wheel/trackpad/drag,
+   keyboard) fully intact - only the scrollbar's own rendering is
+   suppressed. Used by Bookshelf.tsx's vertical scroll container, which
+   sits inside hand-pixeled shelf art that a native scrollbar track/thumb
+   visually clashed with. Needs both the standard property (Firefox) and
+   the -webkit- pseudo-element (Chrome/Safari) - there's no single
+   cross-browser way to do this yet. */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* CRT-style scanlines + vignette, layered over a platform's photo
