@@ -79,6 +79,10 @@ function toggle(list: string[], value: string): string[] {
 // you play?" card while this tile is hovered/focused (see PlatformPicker's
 // onHoverSlugChange, consumed by FilterForm) - reported via slug here,
 // undefined for secondary/niche platforms which have no art.
+// onHoverSlugChange is optional - only FilterForm's home-page card wants
+// the background art; OwnedPlatforms (profile page) doesn't pass it, so
+// there's no hover background there at all rather than a wired-up callback
+// with nothing to show for it.
 function PlatformCard({
   label,
   slug,
@@ -90,16 +94,16 @@ function PlatformCard({
   slug?: string;
   active: boolean;
   onToggle: () => void;
-  onHoverSlugChange: (slug: string | null) => void;
+  onHoverSlugChange?: (slug: string | null) => void;
 }) {
   return (
     <button
       type="button"
       onClick={onToggle}
-      onMouseEnter={() => onHoverSlugChange(slug ?? null)}
-      onMouseLeave={() => onHoverSlugChange(null)}
-      onFocus={() => onHoverSlugChange(slug ?? null)}
-      onBlur={() => onHoverSlugChange(null)}
+      onMouseEnter={() => onHoverSlugChange?.(slug ?? null)}
+      onMouseLeave={() => onHoverSlugChange?.(null)}
+      onFocus={() => onHoverSlugChange?.(slug ?? null)}
+      onBlur={() => onHoverSlugChange?.(null)}
       aria-pressed={active}
       className={cn(
         // A clear "pop" on hover/focus via border/shadow/scale and a
@@ -209,8 +213,9 @@ export default function PlatformPicker({
   // Reports which primary platform's art slug is currently hovered/focused
   // (null when none is) - the picker itself has no art of its own anymore,
   // the parent (FilterForm) uses this to paint it across the whole "Where
-  // will you play?" card, not just this one tile.
-  onHoverSlugChange: (slug: string | null) => void;
+  // will you play?" card, not just this one tile. Optional - OwnedPlatforms
+  // doesn't pass it, since the profile page's own card has no hover art.
+  onHoverSlugChange?: (slug: string | null) => void;
 }) {
   const primary = PRIMARY_PLATFORMS.filter((p) => options.includes(p));
   const secondary = options.filter((p) => !PRIMARY_PLATFORMS.includes(p));

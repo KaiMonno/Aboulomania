@@ -123,7 +123,13 @@ export default function Bookshelf({ items, side, label, highlightGameId }: Books
       <p className="mb-1 text-center text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase">
         {label}
       </p>
-      <div className="max-h-[calc(100vh-7rem)] overflow-y-auto" style={{ width: FRAME_WIDTH }}>
+      {/* overflow-x-hidden is load-bearing, not decorative: setting only
+          overflow-y to a non-visible value makes the UA compute overflow-x
+          as auto too (CSS Overflow spec), so without this, the open-book
+          hover art below - deliberately wider than its own spine and
+          popping out over neighbors - was enough to trigger a horizontal
+          scrollbar on an otherwise vertical-only shelf. */}
+      <div className="max-h-[calc(100vh-7rem)] overflow-x-hidden overflow-y-auto" style={{ width: FRAME_WIDTH }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- local pixel art, no next/image config needed */}
         <img
           src="/library/shelf-cap.png"
@@ -170,7 +176,7 @@ export default function Bookshelf({ items, side, label, highlightGameId }: Books
                           src={sprite.closed}
                           alt=""
                           aria-hidden="true"
-                          className="absolute inset-0 h-full w-full transition-opacity group-hover/book:opacity-0"
+                          className="pointer-events-none absolute inset-0 h-full w-full transition-opacity group-hover/book:opacity-0"
                           style={{ imageRendering: "pixelated" }}
                         />
                         {/* eslint-disable-next-line @next/next/no-img-element -- local pixel art, no next/image config needed */}
@@ -178,15 +184,30 @@ export default function Bookshelf({ items, side, label, highlightGameId }: Books
                           src={sprite.open}
                           alt=""
                           aria-hidden="true"
-                          // max-w-none: Tailwind's base reset sets img {
-                          // max-width: 100% }, which resolves against this
-                          // absolutely positioned image's nearest positioned
-                          // ancestor (the 18px-wide span above) - without
-                          // overriding it, the open art got clamped down to
-                          // spine-width or smaller regardless of the
-                          // explicit width set below, since max-width always
-                          // wins over width in CSS.
-                          className="absolute bottom-0 left-1/2 z-10 max-w-none -translate-x-1/2 opacity-0 transition-opacity group-hover/book:opacity-100"
+                          // pointer-events-none is load-bearing, not just
+                          // belt-and-suspenders: this art is wider than its
+                          // own span and pops out over neighboring spines by
+                          // design (see the comment above), which meant a
+                          // book's own open art - even fully transparent at
+                          // opacity-0 while its neighbor is merely hovered -
+                          // still sat on top of and intercepted pointer
+                          // events over roughly the right 20px of the
+                          // PREVIOUS spine's hitbox (opacity doesn't remove
+                          // an element from hit-testing). Hovering what
+                          // looked like spine N was landing on spine N+1's
+                          // invisible overlay there, opening the wrong book -
+                          // confirmed live via Playwright's own "element
+                          // intercepts pointer events" actionability error
+                          // before this fix. max-w-none: Tailwind's base
+                          // reset sets img { max-width: 100% }, which
+                          // resolves against this absolutely positioned
+                          // image's nearest positioned ancestor (the
+                          // 18px-wide span above) - without overriding it,
+                          // the open art got clamped down to spine-width or
+                          // smaller regardless of the explicit width set
+                          // below, since max-width always wins over width in
+                          // CSS.
+                          className="pointer-events-none absolute bottom-0 left-1/2 z-10 max-w-none -translate-x-1/2 opacity-0 transition-opacity group-hover/book:opacity-100"
                           style={{ imageRendering: "pixelated", width: 16 * SCALE, height: "auto" }}
                         />
                       </span>
