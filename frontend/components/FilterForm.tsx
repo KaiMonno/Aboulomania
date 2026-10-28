@@ -11,7 +11,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Slider } from "@/components/ui/slider";
 import PlaytimeClockSlider from "@/components/PlaytimeClockSlider";
 import PixelBookFlip from "@/components/PixelBookFlip";
-import { Clock, Scale, Gamepad2, Tags, Users, Sparkles, Bookmark } from "lucide-react";
+import {
+  PixelClock,
+  PixelScale,
+  PixelController,
+  PixelTag,
+  PixelUsers,
+  PixelSparkle,
+  PixelBookmark,
+} from "@/components/PixelIcons";
 import MagicBento from "@/components/MagicBento";
 
 // Our theme's --primary, resolved to hex (MagicBento's own color parsing
@@ -22,13 +30,16 @@ const BENTO_GLOW = "#b563d4";
 
 // One MagicBento instance per existing card, columns=1, in the same spot
 // each Card used to occupy - a mechanical swap of the chrome (border glow,
-// spotlight, click ripple) around each card's real, unchanged content,
-// not a redesign of the page's layout. rowHeight is just a floor
-// (gridAutoRows resolves to minmax(rowHeight, auto) at columns=1) so
-// variable-height content (the genre list especially) still grows
-// naturally. Tilt/magnetism are off - nudging or tilting a card while
-// someone is dragging a slider or tapping a toggle inside it would fight
-// the interaction rather than decorate it.
+// click ripple) around each card's real, unchanged content, not a redesign
+// of the page's layout. rowHeight is just a floor (gridAutoRows resolves to
+// minmax(rowHeight, auto) at columns=1) so variable-height content (the
+// genre list especially) still grows naturally. Tilt/magnetism are off -
+// nudging or tilting a card while someone is dragging a slider or tapping a
+// toggle inside it would fight the interaction rather than decorate it.
+// enableSpotlight is off too - the mouse-follow highlight inside the card;
+// spotlightRadius is kept anyway since enableBorderGlow's own glow ring
+// still sizes itself off it (--mb-border-size derives from spotlightRadius
+// in MagicBento.jsx), not just the spotlight it was originally named for.
 function BentoCard({ children, background, className }: { children: ReactNode; background?: ReactNode; className?: string }) {
   return (
     <MagicBento
@@ -36,10 +47,10 @@ function BentoCard({ children, background, className }: { children: ReactNode; b
       columns={1}
       rowHeight={60}
       gap={0}
-      radius={16}
+      radius={0}
       glowColor={BENTO_GLOW}
       enableBorderGlow
-      enableSpotlight
+      enableSpotlight={false}
       spotlightRadius={220}
       clickEffect
       enableStars={false}
@@ -221,7 +232,7 @@ export default function FilterForm({
         <BentoCard>
           <div className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-2 font-heading text-base font-medium">
-              <Clock className="size-4 text-primary" aria-hidden="true" />
+              <PixelClock className="size-4 text-primary" aria-hidden="true" />
               How much time do you have?
             </span>
             <Switch
@@ -238,7 +249,7 @@ export default function FilterForm({
             <div className="flex items-baseline justify-between">
               <Label className="text-muted-foreground">Target length</Label>
               {lengthEnabled && (
-                <span className="text-sm text-muted-foreground">
+                <span className="font-mono text-sm text-muted-foreground">
                   {targetLengthHours >= MAX_LENGTH_HOURS ? `${MAX_LENGTH_HOURS}+ hours` : `${targetLengthHours} hours`}
                 </span>
               )}
@@ -263,7 +274,7 @@ export default function FilterForm({
         <BentoCard>
           <div className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-2 font-heading text-base font-medium">
-              <Scale className="size-4 text-primary" aria-hidden="true" />
+              <PixelScale className="size-4 text-primary" aria-hidden="true" />
               Gameplay or Story
             </span>
             <Switch
@@ -282,7 +293,7 @@ export default function FilterForm({
                 Story vs. gameplay focus
               </Label>
               {storyGameplayEnabled && (
-                <span className="text-sm text-muted-foreground">
+                <span className="font-mono text-sm text-muted-foreground">
                   {storyGameplayUi}/{MAX_STORY_GAMEPLAY_UI}
                 </span>
               )}
@@ -302,7 +313,7 @@ export default function FilterForm({
                 setDirtySinceSave(true);
               }}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="font-mono text-xs text-muted-foreground">
               0 = all gameplay, {MAX_STORY_GAMEPLAY_UI} = all story. AI-estimated per game.
             </p>
           </div>
@@ -357,10 +368,10 @@ export default function FilterForm({
       >
         <div className="flex items-center justify-between gap-2">
           <span className="flex items-center gap-2 font-heading text-base font-medium">
-            <Gamepad2 className="size-4 text-primary" aria-hidden="true" />
+            <PixelController className="size-4 text-primary" aria-hidden="true" />
             Where will you play?
           </span>
-          <span className="text-xs font-normal text-muted-foreground">None selected = everything</span>
+          <span className="font-mono text-xs font-normal text-muted-foreground">None selected = everything</span>
         </div>
         {platformOptions.length > 0 ? (
           <PlatformPicker
@@ -385,10 +396,10 @@ export default function FilterForm({
       <BentoCard>
         <div className="flex items-center justify-between gap-2">
           <span className="flex items-center gap-2 font-heading text-base font-medium">
-            <Tags className="size-4 text-primary" aria-hidden="true" />
+            <PixelTag className="size-4 text-primary" aria-hidden="true" />
             Genres
           </span>
-          <span className="text-xs font-normal text-muted-foreground">Tap once to include, twice to exclude</span>
+          <span className="font-mono text-xs font-normal text-muted-foreground">Tap once to include, twice to exclude</span>
         </div>
         {genreOptions.length > 0 ? (
           <>
@@ -415,7 +426,7 @@ export default function FilterForm({
                   variant="link"
                   size="sm"
                   onClick={() => setShowAllGenres((prev) => !prev)}
-                  className="mt-2 h-auto p-0 text-xs text-muted-foreground"
+                  className="mt-2 h-auto p-0 font-mono text-xs text-muted-foreground"
                 >
                   {showAllGenres ? "View fewer genres" : "View more genres"}
                 </Button>
@@ -429,7 +440,7 @@ export default function FilterForm({
 
       <BentoCard>
         <div className="flex items-center gap-2">
-          <Users className="size-4 text-primary" aria-hidden="true" />
+          <PixelUsers className="size-4 text-primary" aria-hidden="true" />
           <Label htmlFor="requireMultiplayer" className="flex-1">
             Must have multiplayer
           </Label>
@@ -454,7 +465,7 @@ export default function FilterForm({
             size="lg"
             className="gap-1.5"
           >
-            <Bookmark className="size-4" aria-hidden="true" />
+            <PixelBookmark className="size-4" aria-hidden="true" />
             {displaySaveState === "saved"
               ? "Saved as default"
               : displaySaveState === "saving"
@@ -465,7 +476,7 @@ export default function FilterForm({
           </Button>
         )}
         <Button type="submit" disabled={loading} size="lg" className="gap-1.5">
-          <Sparkles className="size-4" aria-hidden="true" />
+          <PixelSparkle className="size-4" aria-hidden="true" />
           {loading ? "Finding games..." : "Find my games"}
         </Button>
       </div>

@@ -28,7 +28,10 @@ const THEMES = {
     '--mb-surface': 'linear-gradient(180deg, #1a1820 0%, #121116 100%)',
     '--mb-edge': 'rgba(255, 255, 255, 0.07)',
     '--mb-highlight': 'rgba(255, 255, 255, 0.06)',
-    '--mb-shadow': '0 24px 48px -28px rgba(0, 0, 0, 0.85), 0 8px 18px -12px rgba(0, 0, 0, 0.6)',
+    // Hard offset, zero blur - a classic pixel-art "pressed into the page"
+    // shadow instead of the soft, diffuse drop-shadow this card used before.
+    '--mb-shadow': '4px 4px 0 0 rgba(8, 7, 10, 0.9)',
+    '--mb-pixel-border': 'rgba(244, 244, 245, 0.22)',
     '--mb-tile': 'linear-gradient(180deg, #3a3644 0%, #27242f 100%)',
     '--mb-tile-edge': 'rgba(255, 255, 255, 0.07)',
     '--mb-tile-highlight': 'rgba(255, 255, 255, 0.12)',
@@ -51,7 +54,8 @@ const THEMES = {
     '--mb-surface': 'linear-gradient(180deg, #ffffff 0%, #f7f7f9 100%)',
     '--mb-edge': 'rgba(24, 24, 27, 0.08)',
     '--mb-highlight': 'rgba(255, 255, 255, 1)',
-    '--mb-shadow': '0 24px 48px -30px rgba(24, 24, 27, 0.28), 0 8px 18px -14px rgba(24, 24, 27, 0.16)',
+    '--mb-shadow': '4px 4px 0 0 rgba(24, 24, 27, 0.35)',
+    '--mb-pixel-border': 'rgba(24, 24, 27, 0.18)',
     '--mb-tile': 'linear-gradient(180deg, #ffffff 0%, #f6f6f8 100%)',
     '--mb-tile-edge': 'rgba(24, 24, 27, 0.08)',
     '--mb-tile-highlight': 'rgba(255, 255, 255, 1)',
@@ -223,8 +227,7 @@ const MagicBento = ({
           vry: 0,
           vtx: 0,
           vty: 0,
-          press: 1,
-          vpress: 0,
+          press: 0,
           stars: 0,
           particles: null,
           active: false,
@@ -435,15 +438,15 @@ const MagicBento = ({
             state[velocity] = 0;
           } else busy = true;
         });
-        const pressTarget = pointer.down === index && s.clickEffect && motion ? 0.985 : 1;
-        for (let step = 0; step < steps; step++) {
-          state.vpress += (420 * (pressTarget - state.press) - 28 * state.vpress) * h;
-          state.press += state.vpress * h;
-        }
-        if (Math.abs(pressTarget - state.press) < 0.0002 && Math.abs(state.vpress) < 0.001) {
+        // No spring here, deliberately - a mechanical pixel-art button
+        // snaps to its pressed position on the same frame the pointer goes
+        // down, it doesn't ease into it the way the hover tilt/magnetism
+        // above do.
+        const pressTarget = pointer.down === index && s.clickEffect && motion ? 1 : 0;
+        if (state.press !== pressTarget) {
           state.press = pressTarget;
-          state.vpress = 0;
-        } else busy = true;
+          busy = true;
+        }
 
         write(card, state, '--mb-x', `${lx.toFixed(1)}px`);
         write(card, state, '--mb-y', `${ly.toFixed(1)}px`);
@@ -453,7 +456,7 @@ const MagicBento = ({
         write(card, state, '--mb-ry', `${state.ry.toFixed(3)}deg`);
         write(card, state, '--mb-tx', `${state.tx.toFixed(2)}px`);
         write(card, state, '--mb-ty', `${state.ty.toFixed(2)}px`);
-        write(card, state, '--mb-press', state.press.toFixed(4));
+        write(card, state, '--mb-press', `${state.press}px`);
         write(card, state, '--mb-wx', `${(wave.x - rect.left).toFixed(1)}px`);
         write(card, state, '--mb-wy', `${(wave.y - rect.top).toFixed(1)}px`);
         write(card, state, '--mb-wr', `${waveRadius.toFixed(1)}px`);

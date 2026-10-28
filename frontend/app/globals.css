@@ -24,6 +24,7 @@
      actually applied anywhere. */
   --font-heading: var(--font-heading);
   --font-sans: var(--font-pixel);
+  --font-mono: var(--font-plex-mono);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -200,4 +201,45 @@
   background-image:
     repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0px, rgba(0, 0, 0, 0.35) 1px, transparent 1px, transparent 3px),
     radial-gradient(ellipse at center, transparent 35%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+/* The whole-app CrtFrame's moving scan-sweep band (see components/
+   CrtFrame.tsx) - top is animated rather than transform: translateY so the
+   0%/100% keyframe values can be plain viewport-relative percentages
+   without needing to know the band's own height ahead of time. Gated on
+   prefers-reduced-motion the same way ShinyText/MagicBento gate their own
+   motion in JS - this is pure CSS, so it's gated here instead. */
+@keyframes crt-scan-sweep {
+  0% {
+    top: -20%;
+  }
+  100% {
+    top: 110%;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .crt-scan-sweep {
+    animation: crt-scan-sweep 7s linear infinite;
+  }
+}
+
+/* A fast, tiny opacity wobble on the whole CrtFrame layer (see components/
+   CrtFrame.tsx) - the "alive, buzzing" read a dead-static scanline texture
+   was missing. Short duration (~7Hz) and a small amplitude (1 -> 0.94) so
+   it reads as a subconscious hum rather than a visible strobe; opacity is
+   compositor-only, so animating it this fast on a full-viewport layer
+   doesn't repaint the gradients underneath on every tick. */
+@keyframes crt-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.94;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .crt-flicker {
+    animation: crt-flicker 0.15s ease-in-out infinite alternate;
+  }
 }

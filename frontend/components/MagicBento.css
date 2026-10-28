@@ -83,6 +83,7 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--mb-radius);
+  border: 2px solid var(--mb-pixel-border);
   background: var(--mb-surface);
   box-shadow: var(--mb-shadow);
   color: var(--mb-ink);
@@ -90,7 +91,7 @@
   isolation: isolate;
   outline: none;
   transform: perspective(900px) translate3d(var(--mb-tx, 0px), var(--mb-ty, 0px), 0) rotateX(var(--mb-rx, 0deg))
-    rotateY(var(--mb-ry, 0deg)) scale(var(--mb-press, 1));
+    rotateY(var(--mb-ry, 0deg)) translate(var(--mb-press, 0px), var(--mb-press, 0px));
   user-select: none;
   -webkit-user-select: none;
 }
@@ -136,15 +137,14 @@
   inset: 0;
   z-index: 1;
   border-radius: inherit;
+  /* A flat-filled circle with a sharp cutoff, not a soft falloff - the
+     spotlight should read as a crisp highlight tile under the cursor,
+     not a smooth blurred glow. */
   background: radial-gradient(
     var(--mb-spot-size) circle at var(--mb-x, -999px) var(--mb-y, -999px),
-    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 1)) 0%,
-    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.973)) 15%,
-    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.837)) 30%,
-    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.593)) 45%,
-    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.317)) 60%,
-    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.104)) 75%,
-    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0) * 0.009)) 90%,
+    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0))) 0%,
+    rgba(var(--mb-glow-rgb), calc(var(--mb-spot-alpha) * var(--mb-hot, 0))) 55%,
+    rgba(var(--mb-glow-rgb), 0) 56%,
     rgba(var(--mb-glow-rgb), 0) 100%
   );
   pointer-events: none;
@@ -178,25 +178,22 @@
   box-sizing: border-box;
   padding: 1px;
   border-radius: inherit;
+  /* Both layers below are hard-edged on purpose (2-3 stops, no smooth
+     falloff) - a chunky border lighting up as a solid block near the
+     cursor, and a thin solid ring snapping outward on click, rather than
+     either one's original soft, blurred glow. */
   background:
     radial-gradient(
       var(--mb-border-size) circle at var(--mb-x, -999px) var(--mb-y, -999px),
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 1)) 0%,
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.973)) 15%,
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.837)) 30%,
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.593)) 45%,
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.317)) 60%,
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.104)) 75%,
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0) * 0.009)) 90%,
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0))) 0%,
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-near, 0))) 70%,
+      rgba(var(--mb-glow-rgb), 0) 71%,
       rgba(var(--mb-glow-rgb), 0) 100%
     ),
     radial-gradient(
       circle at var(--mb-wx, -999px) var(--mb-wy, -999px),
-      rgba(var(--mb-glow-rgb), 0) calc(var(--mb-wr, 0px) - 110px),
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0) * 0.1)) calc(var(--mb-wr, 0px) - 80px),
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0) * 0.32)) calc(var(--mb-wr, 0px) - 52px),
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0) * 0.68)) calc(var(--mb-wr, 0px) - 28px),
-      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0) * 0.94)) calc(var(--mb-wr, 0px) - 10px),
+      rgba(var(--mb-glow-rgb), 0) calc(var(--mb-wr, 0px) - 14px),
+      rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0))) calc(var(--mb-wr, 0px) - 13px),
       rgba(var(--mb-glow-rgb), calc(var(--mb-glow-alpha) * var(--mb-wa, 0))) calc(var(--mb-wr, 0px) - 3px),
       rgba(var(--mb-glow-rgb), 0) var(--mb-wr, 0px)
     );

@@ -110,7 +110,7 @@ function PlatformCard({
         // translucent (not solid) primary tint - a fully opaque fill made
         // the hovered tile the only thing visible, blocking the console
         // photo behind the rest of the card instead of sitting on top of it.
-        "rounded-lg border bg-card/70 px-3 py-1.5 text-sm font-medium transition-all duration-150",
+        "rounded-lg border bg-card/70 px-3 py-1.5 font-mono text-sm font-medium transition-all duration-150",
         active
           ? "border-primary bg-primary/30 text-primary shadow-md shadow-primary/20"
           : "border-input text-foreground hover:scale-105 hover:border-primary hover:bg-primary/35 hover:text-primary hover:shadow-lg hover:shadow-primary/30 focus-visible:scale-105 focus-visible:border-primary focus-visible:bg-primary/35 focus-visible:text-primary"
@@ -173,7 +173,7 @@ export function GenreToggleGroup({
               // own px-3 padding left noticeably more empty space per row
               // here than it does there, where longer platform names fill
               // it out naturally.
-              "rounded-lg border px-2 py-1 text-sm font-medium transition-all duration-150",
+              "rounded-lg border px-2 py-1 font-mono text-sm font-medium transition-all duration-150",
               isIncluded && "border-primary bg-primary text-primary-foreground",
               isExcluded && "border-destructive/60 text-destructive line-through",
               !isIncluded &&
@@ -249,7 +249,7 @@ export default function PlatformPicker({
               ))}
             </div>
           )}
-          <Button type="button" variant="link" size="sm" onClick={onToggleShowAll} className="mt-2 h-auto p-0 text-xs text-muted-foreground">
+          <Button type="button" variant="link" size="sm" onClick={onToggleShowAll} className="mt-2 h-auto p-0 font-mono text-xs text-muted-foreground">
             {showAll ? "View fewer platforms" : "View more platforms"}
           </Button>
         </>

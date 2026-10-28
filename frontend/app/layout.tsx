@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import localFont from "next/font/local";
+import { IBM_Plex_Mono } from "next/font/google";
 import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import BookshelfMargins from "@/components/BookshelfMargins";
 import { BookshelfProvider } from "@/lib/bookshelf-context";
-import Cubes from "@/components/Cubes";
+import CrtFrame from "@/components/CrtFrame";
 
 // BoldPixels by Yuki Pixels (1001fonts.com, FFC license - free for
 // commercial use, no attribution required). Used for every text in the
@@ -27,6 +28,20 @@ const boldPixels = localFont({
   display: "swap",
 });
 
+// IBM Plex Mono - tags, microcopy, slider hints, and form labels (anything
+// that isn't a heading) switch to this monospace face instead of the
+// display pixel font, which reads fine at large sizes but gets cramped and
+// harder to scan in small UI text. next/font/google downloads and
+// self-hosts this at build time (same no-runtime-request guarantee as
+// localFont above), it just isn't a font this project ships its own copy
+// of the way BoldPixels is.
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Aboulomania",
   description: "AI-powered game recommendations",
@@ -35,48 +50,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en" className={cn("font-sans", boldPixels.variable)}>
+      <html lang="en" className={cn("font-sans", boldPixels.variable, ibmPlexMono.variable)}>
         <body className="bg-background text-foreground">
-          {/* Whole-app WebGL background. Needs an explicit negative z-index
-              here, not just DOM order - unlike PlatformPicker's hover art
-              earlier (a nested case where a negative z-index escaped its
-              own Card and painted behind the page instead), position:fixed
-              makes this a "positioned element", which CSS paints above all
-              normal static-flow content regardless of DOM order - without
-              -z-10 it rendered on top of every Card that doesn't itself set
-              an explicit position (i.e. every Card except PlatformPicker's,
-              which happens to have its own "relative" from that same
-              earlier work). This is a direct child of body (the root
-              stacking context), so -z-10 here can't escape anywhere the
-              way it did when nested. Colors are literal oklch() strings
-              matching globals.css's theme tokens (--background for the
-              faces, --primary for the edges, --accent for the ripple) -
-              canvas fillStyle parses oklch() directly in current browsers,
-              so these track the real theme values without a separate hex
-              conversion. */}
-          <Cubes
-            className="fixed inset-0 -z-10"
-            gridSize={10}
-            faceColor="oklch(0.1 0.025 316)"
-            edgeColor="oklch(0.64 0.18 316)"
-            rippleColor="oklch(0.68 0.17 273)"
-            maxAngle={45}
-            radius={3}
-            gap={0.18}
-            edgeStyle="solid"
-            edgeWidth={1}
-            faceOpacity={1}
-            shading={0.6}
-            perspective={0}
-            speed={1}
-            bounce={0.4}
-            brush={1}
-            rippleSpeed={1}
-            autoAnimate
-            rippleOnClick
-            intro
-            dpr={undefined}
-          />
+          <CrtFrame />
           <BookshelfProvider>
             <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background/95 px-4 py-3 backdrop-blur-sm">
               <Link href="/" className="flex items-center gap-2 font-heading text-lg font-semibold">
