@@ -117,10 +117,13 @@ export default function Bookshelf({ items, side, label, highlightGameId }: Books
         side === "left" ? "left-4" : "right-4"
       )}
     >
-      {/* Plain label above the frame, not layered over the cap art - an
-          earlier version put this text inside the shelf-background box
-          itself and it sat awkwardly on top of the roof graphic. */}
-      <p className="mb-1 text-center text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase">
+      {/* A small wooden nameplate above the frame, not layered over the cap
+          art - an earlier version put this text inside the shelf-background
+          box itself and it sat awkwardly on top of the roof graphic. Sharp
+          corners (no rounded-*) and a flat brown fill/border, not a soft
+          shadowed badge - matches the hand-pixeled shelf art below it
+          instead of reading as a generic UI label pasted above it. */}
+      <p className="mx-auto mb-1 w-fit border-[3px] border-[#2e1b0f] bg-[#5c3a21] px-2 py-1 text-center font-heading text-base tracking-wide text-[#f0d9b5] uppercase">
         {label}
       </p>
       {/* overflow-x-hidden is load-bearing, not decorative: setting only

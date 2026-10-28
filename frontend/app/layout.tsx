@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import BookshelfMargins from "@/components/BookshelfMargins";
 import { BookshelfProvider } from "@/lib/bookshelf-context";
 import CrtFrame from "@/components/CrtFrame";
+import NavLink from "@/components/NavLink";
 
 // BoldPixels by Yuki Pixels (1001fonts.com, FFC license - free for
 // commercial use, no attribution required). Used for every text in the
@@ -66,10 +67,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Aboulomania
               </Link>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" render={<Link href="/info">Info</Link>} />
+                <NavLink href="/info">Info</NavLink>
                 <SignedIn>
-                  <Button variant="ghost" size="sm" render={<Link href="/wishlist">Wishlist</Link>} />
-                  <Button variant="ghost" size="sm" render={<Link href="/profile">Profile</Link>} />
+                  <NavLink href="/wishlist">Wishlist</NavLink>
+                  <NavLink href="/profile">Profile</NavLink>
                   <UserButton afterSignOutUrl="/" />
                 </SignedIn>
                 <SignedOut>

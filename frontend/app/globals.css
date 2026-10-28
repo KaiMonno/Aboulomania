@@ -243,3 +243,28 @@
     animation: crt-flicker 0.15s ease-in-out infinite alternate;
   }
 }
+
+/* A small hop on hover/focus for the header's Info/Wishlist/Profile links
+   (see components/NavLink.tsx) - plays once per hover rather than looping,
+   so it reads as a nudge of acknowledgment rather than a persistent
+   wobble. Button already has its own `active:translate-y-px` press nudge
+   (components/ui/button.tsx) for the actual click; this is a separate,
+   earlier moment (hover-in), not a replacement for it. */
+@keyframes nav-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-3px);
+  }
+  60% {
+    transform: translateY(0.5px);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nav-hop:hover,
+  .nav-hop:focus-visible {
+    animation: nav-hop 0.4s ease-out;
+  }
+}

@@ -231,7 +231,7 @@ export default function FilterForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <BentoCard>
           <div className="flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2 font-heading text-base font-medium">
+            <span className="flex items-center gap-2 font-heading text-lg font-medium">
               <PixelClock className="size-4 text-primary" aria-hidden="true" />
               How much time do you have?
             </span>
@@ -273,7 +273,7 @@ export default function FilterForm({
 
         <BentoCard>
           <div className="flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2 font-heading text-base font-medium">
+            <span className="flex items-center gap-2 font-heading text-lg font-medium">
               <PixelScale className="size-4 text-primary" aria-hidden="true" />
               Gameplay or Story
             </span>
@@ -367,7 +367,7 @@ export default function FilterForm({
         }
       >
         <div className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2 font-heading text-base font-medium">
+          <span className="flex items-center gap-2 font-heading text-lg font-medium">
             <PixelController className="size-4 text-primary" aria-hidden="true" />
             Where will you play?
           </span>
@@ -395,7 +395,7 @@ export default function FilterForm({
 
       <BentoCard>
         <div className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2 font-heading text-base font-medium">
+          <span className="flex items-center gap-2 font-heading text-lg font-medium">
             <PixelTag className="size-4 text-primary" aria-hidden="true" />
             Genres
           </span>
